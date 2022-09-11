@@ -56,7 +56,7 @@ extern "C"{
 	} kdata_t;
 
 	//create new data structure
-	kdata_t * kdata_structure_init(kdata_t * strucuture);
+	kdata_t * kdata_structure_init();
 
 	//add type for key to data strucuture
 	kerr kdata_structure_add(kdata_t * structure, DTYPE type, const char * key);
