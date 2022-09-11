@@ -2,15 +2,15 @@
  * File              : kdata.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.09.2022
- * Last Modified Date: 11.09.2022
+ * Last Modified Date: 12.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
 #include "kdata.h"
 #include <stdlib.h>
 #include <string.h>
-#include "sqlite2yandexdisk/sqlite2yandexdisk.h"
-#include "sqlite2yandexdisk/SQLiteConnect/SQLiteConnect.h"
+#include "sqlite2yandexdisk.h"
+#include "SQLiteConnect/SQLiteConnect.h"
 
 const char * kdata_parse_kerr(kerr err){
 	switch (err) {
