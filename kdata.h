@@ -121,13 +121,12 @@ extern "C"{
 			int (*callback)(void * user_data, pthread_t thread, char * msg)
 	);
 
-	void
-	yd_daemon_init(
+	void yd_daemon_init(
 				const char * database_path,
 				const char * token,
 				void * user_data,
 				int (*callback)(void * user_data, pthread_t thread, char * msg)
-			);	
+	);	
 	
 
 #ifdef __cplusplus
