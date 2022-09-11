@@ -46,7 +46,7 @@ extern "C"{
    	} kerr;
 	
 	//parse kerr to error
-	const char * kdata_parse_kerr(kerr err, const char * error);
+	const char * kdata_parse_kerr(kerr err);
 	
 	//list of data structure
 	typedef struct kdata_t {
