@@ -89,8 +89,8 @@ extern "C"{
 	//set int value for table column (key). set uuid to null - to create new row
 	kerr kdata_set_int_for_key(const char * filepath, const char * tablename, const char * uuid, int value, const char * key);
 
-	//set text value with len for table column (key). set uuid to null - to create new row
-	kerr kdata_set_text_for_key(const char * filepath, const char * tablename, const char * uuid, const char * text, unsigned long len, const char * key);
+	//set text value for table column (key). set uuid to null - to create new row
+	kerr kdata_set_text_for_key(const char * filepath, const char * tablename, const char * uuid, const char * text, const char * key);
 
 	//set data value with len for table column (key). set uuid to null - to create new row
 	kerr kdata_set_data_for_key(const char * filepath, const char * tablename, const char * uuid, void * data, unsigned long len, const char * key);
