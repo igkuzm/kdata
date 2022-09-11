@@ -19,23 +19,62 @@ extern "C"{
 	*
 	*  cloud data service (yandex_disk, google)
 	*/
-	enum DSERVICE { 
-		YANDEX   
-	};
-
+	typedef enum DSERVICE {
+		DSERVICE_LOCAL,	
+		DSERVICE_YANDEX   
+	} DSERVICE;
 	/*! \enum DTYPE
 	*
 	*  type of data (integer, text, data)
 	*/
-	enum DTYPE {
+	typedef enum DTYPE {
 		DTYPE_INT,
 		DTYPE_TEXT,
 		DTYPE_DATA
-	};
+	} DTYPE;
 
-	//init database (SQLite) at filepath (create if needed) and start cloud service
-	int kdata_init(const char * filepath, DSERVICE service, const char * token);
+	//list of data structure
+	typedef struct kdata_t {
+		DTYPE data_type;
+		char key[128];
+		struct kdata_t * next;
+	} kdata_t;
 
+	//create new data structure
+	kdata_t * kdata_structure_init();
+
+	//add type for key to data strucuture
+	void kdata_structure_add(kdata_t * structure, DTYPE type, const char * key);
+
+	/*! \enum KERR
+	*
+	*  errors
+	*/
+	typedef enum KERR { 
+		KERR_NOERR,
+		KERR_ENOMEM,
+		KERR_NOFILE,
+		KERR_DTYPE
+   	} kerr;
+
+	//parse kerr to error
+	const char * kdata_parse_kerr(kerr err, const char * error);
+
+	//init database (SQLite) at filepath (create if needed) with structure and start cloud service
+	kerr kdata_init(const char * filepath, kdata_t * structure, DSERVICE service, const char * token);
+
+	//set int value for table column (key). set uuid to null - to create new row
+	kerr kdata_set_int_for_key(const char * filepath, const char * tablename, const char * uuid, int value, const char * key);
+
+	//set text value with len for table column (key). set uuid to null - to create new row
+	kerr kdata_set_text_for_key(const char * filepath, const char * tablename, const char * uuid, const char * text, unsigned long len, const char * key);
+
+	//set data value with len for table column (key). set uuid to null - to create new row
+	kerr kdata_set_data_for_key(const char * filepath, const char * tablename, const char * uuid, void * data, unsigned long len, const char * key);
+
+	//get int for key
+	void kdata_get_int_for_key(const char * filepath, const char * tablename, const char * uuid, void * user_data,
+			int (*callback)(void * user_data, int value, kerr err));
 
 
 #ifdef __cplusplus
