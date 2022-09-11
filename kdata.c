@@ -27,6 +27,7 @@ const char * kdata_parse_kerr(kerr err){
 }
 
 kdata_t * kdata_table_init(){
+	//allocate memory
 	kdata_t * s = malloc(sizeof(kdata_t));
 	if (!s) 
 		return NULL;
@@ -35,12 +36,13 @@ kdata_t * kdata_table_init(){
 }
 
 kerr kdata_table_add(kdata_t * t, DTYPE type, const char * key){
-	if (!t)
+	if (!t) //ckeck if strucuture null
 		return KERR_NULLSTRUCTURE;
 
-	if (!strcmp(key, "uuid"))
+	if (!strcmp(key, "uuid")) //dont use name 'uuid' for key
 		return KERR_DONTUSEUUID;
 
+	//create new table
 	kdata_t * n = kdata_table_init();
 	if (!n) 
 		return KERR_ENOMEM;
@@ -50,13 +52,13 @@ kerr kdata_table_add(kdata_t * t, DTYPE type, const char * key){
 	strncpy(n->key, key, sizeof(n->key) - 1); 
 	n->key[sizeof(n->key) - 1] = 0;
 
-	t = n;
+	t = n; //set pointer of data to new table
 
 	return KERR_NOERR;
 }
 
 kerr kdata_table_free(kdata_t * t){
-	if (!t)
+	if (!t) //ckeck if strucuture null
 		return KERR_NULLSTRUCTURE;
 	
 	while (t) {
@@ -69,6 +71,7 @@ kerr kdata_table_free(kdata_t * t){
 }
 
 kdata_s * kdata_structure_init(){
+	//allocate
 	kdata_s * s = malloc(sizeof(kdata_s));
 	if (!s) 
 		return NULL;
@@ -77,11 +80,11 @@ kdata_s * kdata_structure_init(){
 }
 
 kerr kdata_structure_add(kdata_s * s, kdata_t * table, const char * tablename){
-	if (!s)
+	if (!s) //ckeck if strucuture null
 		return KERR_NULLSTRUCTURE;
 
 	kdata_s * n = kdata_structure_init();
-	if (!n) 
+	if (!n) //ckeck if null
 		return KERR_ENOMEM;
 
 	n->next = s;
@@ -89,7 +92,7 @@ kerr kdata_structure_add(kdata_s * s, kdata_t * table, const char * tablename){
 	strncpy(n->tablename, tablename, sizeof(n->tablename) - 1); 
 	n->tablename[sizeof(n->tablename) - 1] = 0;
 
-	s = n;
+	s = n; //change pointer to new
 
 	return KERR_NOERR;	
 }
@@ -109,10 +112,12 @@ kerr kdata_structure_free(kdata_s * s){
 
 
 kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char * token){
+	//ceate database
 	int res = sqlite_connect_create_database(filepath);
 	if (res) 
 		return KERR_SQLITE_CREATE;
 
+	//create table to store update information
 	char SQL[] = "CREATE TABLE IF NOT EXISTS "
 				 "kdata_updates "
 				 "( "
@@ -127,12 +132,14 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 	if (res) 
 		return KERR_SQLITE_EXECUTE;	
 	
+	//create table for each in strucuture
 	while (s) {
 		kdata_t * t = s->table;
 		if (t){
 			char SQL[BUFSIZ] = "CREATE TABLE IF NOT EXISTS ";
 			strcat(SQL, s->tablename);
 			strcat(SQL, " ( ");
+			//for each data type
 			while(t) {
 				char * type;
 				switch (t->type) {
@@ -148,6 +155,7 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 				t = t->next;
 			}
 
+			//add uuid key to table
 			strcat(SQL, "uuid TEXT )");
 
 			int res = sqlite_connect_execute(SQL, filepath);
@@ -157,5 +165,7 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 		
 		s = s->next;
 	}
+
+	//start daemon
 	
 }
