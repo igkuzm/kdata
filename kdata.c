@@ -18,6 +18,7 @@ const char * kdata_parse_kerr(kerr err){
 		case KERR_ENOMEM: return "not enough memory";
 		case KERR_NOFILE: return "no such file or directory";
 		case KERR_DTYPE: return "error of data type";
+		case KERR_DONTUSEUUID: return "error key can't be 'uuid' - it is used";
 		case KERR_SQLITE_CREATE: return "SQLite: can't create/access database";
 		case KERR_SQLITE_EXECUTE: return "SQLite: execute error";
 		case KERR_NULLSTRUCTURE: return "data structure is NULL";
@@ -36,6 +37,9 @@ kdata_t * kdata_table_init(){
 kerr kdata_table_add(kdata_t * t, DTYPE type, const char * key){
 	if (!t)
 		return KERR_NULLSTRUCTURE;
+
+	if (!strcmp(key, "uuid"))
+		return KERR_DONTUSEUUID;
 
 	kdata_t * n = kdata_table_init();
 	if (!n) 
