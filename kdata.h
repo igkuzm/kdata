@@ -45,7 +45,7 @@ extern "C"{
    	} kerr;
 	//list of data structure
 	typedef struct kdata_t {
-		DTYPE data_type;
+		DTYPE type;
 		char key[128];
 		struct kdata_t * next;
 	} kdata_t;
