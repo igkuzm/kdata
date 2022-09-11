@@ -31,7 +31,7 @@
 
 struct kdatad_data_t{
 	char database_path[BUFSIZ];
-	char YD_token[128];
+	char token[128];
 	void * user_data;
 	pthread_t thread;
 	int (*callback)(void * user_data, pthread_t thread, char * msg);
@@ -173,7 +173,7 @@ void update_from_cloud_with_data(
 		struct kdatad_data_t data;
 		{
 			strcpy(data.database_path, database_path);
-			strcpy(data.YD_token, YD_token);
+			strcpy(data.token, YD_token);
 			data.user_data = user_data;
 			data.thread = thread;
 			data.callback = callback;
@@ -215,7 +215,7 @@ void kdatad_update_data(struct kdatad_data_t * d)
 
 		//get list of uuid
 		c_yandex_disk_ls(
-			d->YD_token, 
+			d->token, 
 			path, 
 			&list, 
 			get_list_of_uuid
@@ -231,7 +231,7 @@ void kdatad_update_data(struct kdatad_data_t * d)
 					if (!t.deleted){
 						update_from_cloud_with_data(
 							d->database_path,
-							d->YD_token,
+							d->token,
 							d->user_data,
 							d->thread,
 							d->callback,
@@ -247,7 +247,7 @@ void kdatad_update_data(struct kdatad_data_t * d)
 			if (isNew) {
 				update_from_cloud_with_data(
 					d->database_path,
-					d->YD_token,
+					d->token,
 					d->user_data,
 					d->thread,
 					d->callback,
@@ -267,15 +267,15 @@ void kdatad_update_data(struct kdatad_data_t * d)
 
 	//upload to cloud
 	//for each timestamp
-	yad_t_array_for_each(array, t) {
+	kdatad_t_array_for_each(array, t) {
 		if (t.localchange) {
 			if (t.deleted) {
 				//delete from yandex disk
-				printf("ya daemon: try to delete: TOKEN: %s; PATH: %s; DB: %s; TABLE: %s; UUID: %s\n", d->YD_token, PATH, d->database_path, t.tablename, t.uuid);
+				printf("ya daemon: try to delete: TOKEN: %s; PATH: %s; DB: %s; TABLE: %s; UUID: %s\n", d->token, PATH, d->database_path, t.tablename, t.uuid);
 				char * error = NULL;
 				char path[BUFSIZ];
 				sprintf(path, "app:/%s/%s/%s", PATH, t.tablename, t.uuid);						
-				c_yandex_disk_rm(d->YD_token, path, &error);
+				c_yandex_disk_rm(d->token, path, &error);
 				if (error){
 					if (d->callback)
 						d->callback(0, d->thread, error);
@@ -287,10 +287,10 @@ void kdatad_update_data(struct kdatad_data_t * d)
 				}
 			} else {
 				//update to Yandex Disk
-				struct yad_data_t * data = NEW(struct yad_data_t);
+				struct kdatad_data_t * data = NEW(struct kdatad_data_t);
 				{
 					strcpy(data->database_path, d->database_path);
-					strcpy(data->YD_token, d->YD_token);
+					strcpy(data->token, d->token);
 					data->user_data = d->user_data;
 					data->thread = d->thread;
 					data->callback = d->callback;
@@ -300,9 +300,9 @@ void kdatad_update_data(struct kdatad_data_t * d)
 					data->deleted = t.deleted;
 				}
 
-				printf("ya daemon: try to upload: TOKEN: %s; PATH: %s; DB: %s; TABLE: %s; UUID: %s; TIME: %ld\n", d->YD_token, PATH, d->database_path, t.tablename, t.uuid, t.timestamp);
+				printf("ya daemon: try to upload: TOKEN: %s; PATH: %s; DB: %s; TABLE: %s; UUID: %s; TIME: %ld\n", d->token, PATH, d->database_path, t.tablename, t.uuid, t.timestamp);
 				sqlite2yandexdisk_upload(
-					d->YD_token, 
+					d->token, 
 					PATH, 
 					d->database_path, 
 					t.tablename, 
@@ -316,7 +316,7 @@ void kdatad_update_data(struct kdatad_data_t * d)
 	}
 
 	//free memory
-	yad_t_array_free(array);
+	kdatad_t_array_free(array);
 }
 
 void *
@@ -340,7 +340,8 @@ kdatad_thread(void * data)
 void
 kdata_daemon_init(
 			const char * database_path,
-			const char * YD_token,
+			DSERVICE service,
+			const char * token,
 			void * user_data,
 			int (*callback)(void * user_data, pthread_t thread, char * msg)
 		)
@@ -357,15 +358,15 @@ kdata_daemon_init(
 	}	
 
 	//set params
-	struct yad_data_t *d = NEW(struct yad_data_t);
+	struct kdatad_data_t *d = NEW(struct kdatad_data_t);
 	strcpy(d->database_path, database_path);
-	strcpy(d->YD_token, YD_token);
+	strcpy(d->token, token);
 	d->callback = callback;
 	d->thread = tid;
 	d->user_data = user_data;
 	
 	//create new thread
-	err = pthread_create(&tid, &attr, yad_thread, d);
+	err = pthread_create(&tid, &attr, kdatad_thread, d);
 	if (err) {
 		if (callback)
 			callback(user_data, 0, STR("kdata daemon: can't create thread: %d", err));
