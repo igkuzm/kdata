@@ -24,7 +24,7 @@ const char * kdata_parse_kerr(kerr err){
 	return "";
 }
 
-kdata_t * kdata_structure_init(){
+kdata_t * kdata_table_init(){
 	kdata_t * s = malloc(sizeof(kdata_t));
 	if (!s) 
 		return NULL;
@@ -32,11 +32,11 @@ kdata_t * kdata_structure_init(){
 	return s;
 }
 
-kerr kdata_structure_add(kdata_t * s, DTYPE type, const char * key){
+kerr kdata_table_add(kdata_t * s, DTYPE type, const char * key){
 	if (!s)
 		return KERR_NULLSTRUCTURE;
 
-	kdata_t * n = kdata_structure_init();
+	kdata_t * n = kdata_table_init();
 	if (!n) 
 		return KERR_ENOMEM;
 
@@ -50,7 +50,7 @@ kerr kdata_structure_add(kdata_t * s, DTYPE type, const char * key){
 	return KERR_NOERR;
 }
 
-kerr kdata_structure_free(kdata_t * s){
+kerr kdata_table_free(kdata_t * s){
 	if (!s)
 		return KERR_NULLSTRUCTURE;
 	
