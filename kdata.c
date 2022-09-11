@@ -9,7 +9,7 @@
 #include "kdata.h"
 #include <stdlib.h>
 #include <string.h>
-#include "sqlite2yandexdisk.h"
+#include "yd.h"
 #include "SQLiteConnect/SQLiteConnect.h"
 
 const char * kdata_parse_kerr(kerr err){
