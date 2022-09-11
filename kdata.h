@@ -41,7 +41,8 @@ extern "C"{
 		KERR_NOERR,
 		KERR_ENOMEM,
 		KERR_NOFILE,
-		KERR_DTYPE
+		KERR_DTYPE,
+		KERR_NULLSTRUCTURE
    	} kerr;
 	//list of data structure
 	typedef struct kdata_t {
