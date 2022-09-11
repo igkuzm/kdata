@@ -60,7 +60,9 @@ extern "C"{
 
 	//add type for key to data strucuture
 	kerr kdata_structure_add(kdata_t * structure, DTYPE type, const char * key);
-
+	
+	//free data structure
+	kerr kdata_structure_free(kdata_t * structure);
 
 	//init database (SQLite) at filepath (create if needed) with structure and start cloud service
 	kerr kdata_init(const char * filepath, kdata_t * structure, DSERVICE service, const char * token);
