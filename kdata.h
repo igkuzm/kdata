@@ -110,7 +110,17 @@ extern "C"{
 				char * msg)			
 	);
 
-	//set int value for table column (key). set uuid to null - to create new row
+	//add row - int value for table column (key)
+	void kdata_add_int_for_key(
+			const char * filepath, 
+			const char * tablename, 
+			int value, 
+			const char * key,
+			void * user_data,
+			int (*callback)(void * user_data, char * uuid, kerr err)
+	);
+	
+	//set int value for table column (key)
 	kerr kdata_set_int_for_key(
 			const char * filepath, 
 			const char * tablename, 
