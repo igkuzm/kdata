@@ -112,7 +112,6 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 	char SQL[] = "CREATE TABLE IF NOT EXISTS "
 				 "kdata_updates "
 				 "( "
-				 "id INT, "
 				 "uuid TEXT, "
 				 "tablename TEXT, "
 				 "timestamp INT, "
@@ -120,7 +119,7 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 				 "deleted INT"
 				 ")"
 	;
-	int res = sqlite_connect_execute(SQL, filepath);
+	res = sqlite_connect_execute(SQL, filepath);
 	if (res) 
 		return KERR_SQLITE_EXECUTE;	
 	
