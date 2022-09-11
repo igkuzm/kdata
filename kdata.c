@@ -180,7 +180,7 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 
 void
 kdata_daemon_init(
-			const char * database_path,
+			const char * filepath,
 			DSERVICE service,
 			const char * token,
 			void * user_data,
@@ -188,5 +188,5 @@ kdata_daemon_init(
 		)
 {
 	if (service == DSERVICE_YANDEX)
-
+		yd_daemon_init(filepath, token, user_data, callback);
 }
