@@ -44,7 +44,7 @@ extern "C"{
 	kdata_t * kdata_structure_init();
 
 	//add type for key to data strucuture
-	void kdata_structure_add(kdata_t * structure, DTYPE type, const char * key);
+	kerr kdata_structure_add(kdata_t * structure, DTYPE type, const char * key);
 
 	/*! \enum KERR
 	*
