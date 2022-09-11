@@ -93,12 +93,11 @@ int ya_t_get(void *user_data, int argc, char *argv[], char *titles[])
 		}
 
 		switch (i) {
-			case 0:  item.id = atoi(buff)                ; break;
-			case 1:  strcpy(item.uuid, buff)             ; break;
-			case 2:  strcpy(item.tablename, buff)        ; break;
-			case 3:  item.timestamp = atol(buff)         ; break;
-			case 4:  item.localchange = atoi(buff)       ; break;
-			case 5:  item.deleted = atoi(buff)           ; break;
+			case 0:  strcpy(item.uuid, buff)             ; break;
+			case 1:  strcpy(item.tablename, buff)        ; break;
+			case 2:  item.timestamp = atol(buff)         ; break;
+			case 3:  item.localchange = atoi(buff)       ; break;
+			case 4:  item.deleted = atoi(buff)           ; break;
 
 			default:                                       break;
 		}
@@ -128,7 +127,7 @@ int transfer_callback(size_t size, void *user_data, char *error){
 															  ", uuid: %s, timestamp: %ld"
 															  ", size: %ld", data->tablename, data->uuid, data->timestamp, size));
 		char SQL[BUFSIZ];
-		sprintf(SQL, "UPDATE updates SET localchange = 0, timestamp = %ld WHERE uuid = '%s'", data->timestamp, data->uuid);
+		sprintf(SQL, "UPDATE kdata_updates SET localchange = 0, timestamp = %ld WHERE uuid = '%s'", data->timestamp, data->uuid);
 		sqlite_connect_execute(SQL, data->database_path);
 	}
 
@@ -203,7 +202,7 @@ void kdatad_update_data(struct kdatad_data_t * d)
 
 	//get list of updates 
 	struct kdatad_t_array * array = kdatad_t_array_new();	
-	char SQL[] = "SELECT * FROM updates";
+	char SQL[] = "SELECT * FROM kdata_updates";
 	sqlite_connect_execute_function(SQL, d->database_path, array, ya_t_get);
 
 	//update from cloud
@@ -282,7 +281,7 @@ void kdatad_update_data(struct kdatad_data_t * d)
 				}else {
 					//update updates table
 					char SQL[BUFSIZ];
-					sprintf(SQL, "UPDATE updates SET localchange = 0, timestamp = %ld WHERE uuid = '%s'", d->timestamp, d->uuid);
+					sprintf(SQL, "UPDATE kdata_updates SET localchange = 0, timestamp = %ld WHERE uuid = '%s'", d->timestamp, d->uuid);
 					sqlite_connect_execute(SQL, d->database_path);				
 				}
 			} else {
