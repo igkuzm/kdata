@@ -108,11 +108,26 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 	int res = sqlite_connect_create_database(filepath);
 	if (res) 
 		return KERR_SQLITE_CREATE;
+
+	char SQL[] = "CREATE TABLE IF NOT EXISTS "
+				 "kdata_updates "
+				 "( "
+				 "id INT, "
+				 "uuid TEXT, "
+				 "tablename TEXT, "
+				 "timestamp INT, "
+				 "localchange INT,"
+				 "deleted INT"
+				 ")"
+	;
+	int res = sqlite_connect_execute(SQL, filepath);
+	if (res) 
+		return KERR_SQLITE_EXECUTE;	
 	
-	char SQL[BUFSIZ] = "CREATE TABLE IF NOT EXISTS ";
 	while (s) {
 		kdata_t * t = s->table;
 		if (t){
+			char SQL[BUFSIZ] = "CREATE TABLE IF NOT EXISTS ";
 			strcat(SQL, s->tablename);
 			strcat(SQL, " ( ");
 			while(t) {
