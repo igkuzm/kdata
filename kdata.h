@@ -107,6 +107,7 @@ extern "C"{
 
 	void kdata_daemon_init(
 			const char * filepath,
+			DSERVICE service,
 			const char * token,
 			void * user_data,
 			int (*callback)(void * user_data, pthread_t thread, char * msg)
