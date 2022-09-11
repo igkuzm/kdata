@@ -9,6 +9,8 @@
 #include "kdata.h"
 #include <stdlib.h>
 #include <string.h>
+#include "sqlite2yandexdisk/sqlite2yandexdisk.h"
+#include "sqlite2yandexdisk/SQLiteConnect/SQLiteConnect.h"
 
 const char * kdata_parse_kerr(kerr err){
 	switch (err) {
@@ -16,6 +18,7 @@ const char * kdata_parse_kerr(kerr err){
 		case KERR_ENOMEM: return "not enough memory";
 		case KERR_NOFILE: return "no such file or directory";
 		case KERR_DTYPE: return "error of data type";
+		case KERR_SQLITE_CREATE: return "SQLite: can't create/access database";
 		case KERR_NULLSTRUCTURE: return "data structure is NULL";
 	}
 	return "";
@@ -58,4 +61,12 @@ kerr kdata_structure_free(kdata_t * s){
 	}
 	
 	return KERR_NOERR;
+}
+
+kerr kdata_init(const char * filepath, kdata_t * structure, DSERVICE service, const char * token){
+	int res = sqlite_connect_create_database(filepath);
+	if (res) 
+		return KERR_SQLITE_CREATE;
+	
+	char SQL[BUFSIZ] = "CREATE TABLE IF NOT EXISTS ";
 }
