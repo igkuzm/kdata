@@ -7,10 +7,13 @@
  */
 
 #include "kdata.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "yd.h"
 #include "SQLiteConnect/SQLiteConnect.h"
+#include "cYandexDisk/uuid4/uuid4.h"
+
 
 const char * kdata_parse_kerr(kerr err){
 	switch (err) {
@@ -177,6 +180,100 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 	
 	return KERR_NOERR;	
 }
+
+char * kdata_new_uuid(){
+	//create uuid
+	char * uuid = malloc(37);
+	if (!uuid)
+		return NULL;
+	UUID4_STATE_T state; UUID4_T identifier;
+	uuid4_seed(&state);
+	uuid4_gen(&state, &identifier);
+	if (!uuid4_to_s(identifier, uuid, 37)){
+		return NULL;
+	}
+
+	return uuid;
+}
+
+void
+update_timestamp_for_uuid(const char * filepath, const char * tablename, const char * uuid, int deleted){
+	time_t timestamp = time(NULL);
+	char SQL[BUFSIZ];
+	sprintf(SQL,
+			"INSERT INTO kdata_updates (uuid) "
+			"SELECT '%s' "
+			"WHERE NOT EXISTS (SELECT 1 FROM kdata_updates WHERE uuid = '%s'); "
+			"UPDATE updates SET timestamp = %ld, tablename = '%s', localchange = 1, deleted = %d WHERE uuid = '%s'"
+			,
+			uuid,
+			uuid,
+			timestamp, tablename, deleted, uuid		
+	);
+	sqlite_connect_execute(SQL, filepath);	
+}
+
+void kdata_add_int_for_key(
+		const char * filepath, 
+		const char * tablename, 
+		int value, 
+		const char * key,
+		void * user_data,
+		int (*callback)(void * user_data, char * uuid, kerr err)
+		){
+	
+	char * uuid = kdata_new_uuid();
+	if (!uuid){ //can not generate uuid
+		if (callback)
+			callback(user_data, NULL, KERR_ENOMEM);
+		return;
+	}
+
+	//insert into table
+	char SQL[BUFSIZ];
+	sprintf(SQL, 
+			"INSERT INTO %s (%s, uuid) VALUES (%d, '%s')",
+			tablename, key, value, uuid);	
+
+	int res = sqlite_connect_execute(SQL, filepath);
+	if (res){
+		if (callback)
+			callback(user_data, NULL, KERR_SQLITE_EXECUTE);
+		return;		
+	}
+
+	//callback uuid for inserted item
+	if (callback)
+		callback(user_data, uuid, KERR_NOERR);
+	
+	//update kdata_update table
+	update_timestamp_for_uuid(filepath, tablename, uuid, 0);
+	
+	//free uuid
+	free(uuid);
+}
+
+kerr kdata_set_int_for_key(
+		const char * filepath, 
+		const char * tablename, 
+		const char * uuid, 
+		int value, 
+		const char * key
+		){
+	
+	char SQL[BUFSIZ];
+	sprintf(SQL, 
+			"UPDATE %s SET %s = %d WHERE uuid = '%s'",
+			tablename, key, value, uuid);
+	
+	int res = sqlite_connect_execute(SQL, filepath);
+	if (res)
+		return KERR_SQLITE_EXECUTE;
+
+	return KERR_NOERR;	
+}
+
+
 
 void
 kdata_daemon_init(
