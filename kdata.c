@@ -85,7 +85,7 @@ kerr kdata_structure_add(kdata_s * s, kdata_t * table, const char * tablename){
 		return KERR_NULLSTRUCTURE;
 
 	if (!strcmp(tablename, "kdata_updates")) //dont use name 'kdata_updates' for key
-		return KERR_DONTUSEUUID;
+		return KERR_DONTUSEKDATAUPDATES;
 	
 	kdata_s * n = kdata_structure_init();
 	if (!n) //ckeck if null
