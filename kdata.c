@@ -204,7 +204,7 @@ update_timestamp_for_uuid(const char * filepath, const char * tablename, const c
 			"INSERT INTO kdata_updates (uuid) "
 			"SELECT '%s' "
 			"WHERE NOT EXISTS (SELECT 1 FROM kdata_updates WHERE uuid = '%s'); "
-			"UPDATE updates SET timestamp = %ld, tablename = '%s', localchange = 1, deleted = %d WHERE uuid = '%s'"
+			"UPDATE kdata_updates SET timestamp = %ld, tablename = '%s', localchange = 1, deleted = %d WHERE uuid = '%s'"
 			,
 			uuid,
 			uuid,
@@ -213,11 +213,9 @@ update_timestamp_for_uuid(const char * filepath, const char * tablename, const c
 	sqlite_connect_execute(SQL, filepath);	
 }
 
-void kdata_add_int_for_key(
+void kdata_add(
 		const char * filepath, 
 		const char * tablename, 
-		int value, 
-		const char * key,
 		void * user_data,
 		int (*callback)(void * user_data, char * uuid, kerr err)
 		){
@@ -232,8 +230,8 @@ void kdata_add_int_for_key(
 	//insert into table
 	char SQL[BUFSIZ];
 	sprintf(SQL, 
-			"INSERT INTO %s (%s, uuid) VALUES (%d, '%s')",
-			tablename, key, value, uuid);	
+			"INSERT INTO %s (uuid) VALUES ('%s')",
+			tablename, uuid);	
 
 	int res = sqlite_connect_execute(SQL, filepath);
 	if (res){
@@ -245,9 +243,6 @@ void kdata_add_int_for_key(
 	//callback uuid for inserted item
 	if (callback)
 		callback(user_data, uuid, KERR_NOERR);
-	
-	//update kdata_update table
-	update_timestamp_for_uuid(filepath, tablename, uuid, 0);
 	
 	//free uuid
 	free(uuid);
@@ -270,6 +265,9 @@ kerr kdata_set_int_for_key(
 	if (res)
 		return KERR_SQLITE_EXECUTE;
 
+	//update kdata_update table
+	update_timestamp_for_uuid(filepath, tablename, uuid, 0);
+	
 	return KERR_NOERR;	
 }
 
