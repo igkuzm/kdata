@@ -49,28 +49,38 @@ extern "C"{
 	//parse kerr to error
 	const char * kdata_parse_kerr(kerr err);
 	
-	//list of table data structure
+	//list of table structure
 	typedef struct kdata_t {
 		DTYPE type;
 		char key[128];
 		struct kdata_t * next;
 	} kdata_t;
 
-	//create new data structure
+	//create new table structure
 	kdata_t * kdata_table_init();
 
-	//add type for key to data strucuture
-	kerr kdata_table_add(kdata_t * structure, DTYPE type, const char * key);
+	//add type for key to table strucuture
+	kerr kdata_table_add(kdata_t * table, DTYPE type, const char * key);
 	
-	//free data structure
-	kerr kdata_table_free(kdata_t * structure);
+	//free table structure
+	kerr kdata_table_free(kdata_t * table);
 
 	//list of data structure
 	typedef struct kdata_s {
+		struct kdata_t * table;
 		char tablename[128];
 		struct kdata_s * next;
 	} kdata_s;
+
+	//create new data structure
+	kdata_s * kdata_structure_init();
+
+	//add table to data strucuture
+	kerr kdata_structure_add(kdata_s * strucuture, kdata_t * table, const char * tablename);
 	
+	//free data structure
+	kerr kdata_structure_free(kdata_s * strucuture);	
+
 
 	//init database (SQLite) at filepath (create if needed) with structure and start cloud service
 	kerr kdata_init(const char * filepath, kdata_t * structure, DSERVICE service, const char * token);
