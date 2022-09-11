@@ -110,15 +110,20 @@ extern "C"{
 				char * msg)			
 	);
 
-	//add row - int value for table column (key)
-	void kdata_add_int_for_key(
+	//add row
+	void kdata_add(
 			const char * filepath, 
 			const char * tablename, 
-			int value, 
-			const char * key,
 			void * user_data,
 			int (*callback)(void * user_data, char * uuid, kerr err)
 	);
+
+	//remove row with uuid
+	kerr kdata_remove(
+			const char * filepath, 
+			const char * tablename, 
+			const char * uuid 
+	);	
 	
 	//set int value for table column (key)
 	kerr kdata_set_int_for_key(
