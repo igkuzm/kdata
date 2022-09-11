@@ -338,7 +338,7 @@ yad_thread(void * data)
 }
 
 void
-ya_daemon_init(
+kdata_daemon_init(
 			const char * database_path,
 			const char * YD_token,
 			void * user_data,
