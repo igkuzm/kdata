@@ -33,6 +33,16 @@ extern "C"{
 		DTYPE_DATA
 	} DTYPE;
 
+	/*! \enum KERR
+	*
+	*  errors
+	*/
+	typedef enum KERR { 
+		KERR_NOERR,
+		KERR_ENOMEM,
+		KERR_NOFILE,
+		KERR_DTYPE
+   	} kerr;
 	//list of data structure
 	typedef struct kdata_t {
 		DTYPE data_type;
@@ -45,17 +55,6 @@ extern "C"{
 
 	//add type for key to data strucuture
 	kerr kdata_structure_add(kdata_t * structure, DTYPE type, const char * key);
-
-	/*! \enum KERR
-	*
-	*  errors
-	*/
-	typedef enum KERR { 
-		KERR_NOERR,
-		KERR_ENOMEM,
-		KERR_NOFILE,
-		KERR_DTYPE
-   	} kerr;
 
 	//parse kerr to error
 	const char * kdata_parse_kerr(kerr err, const char * error);
