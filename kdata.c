@@ -111,7 +111,9 @@ kerr kdata_structure_free(kdata_s * s){
 }
 
 
-kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char * token){
+kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char * token,
+		void * user_data, int (*daemon_callback)(void * user_data, pthread_t thread, char * msg)
+		){
 	//ceate database
 	int res = sqlite_connect_create_database(filepath);
 	if (res) 
@@ -167,5 +169,7 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 	}
 
 	//start daemon
+	kdata_daemon_init(filepath, service, token, user_data, daemon_callback);	
 	
+	return KERR_NOERR;	
 }
