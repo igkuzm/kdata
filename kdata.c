@@ -19,6 +19,7 @@ const char * kdata_parse_kerr(kerr err){
 		case KERR_NOFILE: return "no such file or directory";
 		case KERR_DTYPE: return "error of data type";
 		case KERR_DONTUSEUUID: return "error key can't be 'uuid' - it is used";
+		case KERR_DONTUSEKDATAUPDATES: return "error table name can't be 'kdata_updates' - it is used";
 		case KERR_SQLITE_CREATE: return "SQLite: can't create/access database";
 		case KERR_SQLITE_EXECUTE: return "SQLite: execute error";
 		case KERR_NULLSTRUCTURE: return "data structure is NULL";
@@ -83,6 +84,9 @@ kerr kdata_structure_add(kdata_s * s, kdata_t * table, const char * tablename){
 	if (!s) //ckeck if strucuture null
 		return KERR_NULLSTRUCTURE;
 
+	if (!strcmp(tablename, "kdata_updates")) //dont use name 'kdata_updates' for key
+		return KERR_DONTUSEUUID;
+	
 	kdata_s * n = kdata_structure_init();
 	if (!n) //ckeck if null
 		return KERR_ENOMEM;
