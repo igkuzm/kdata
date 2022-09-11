@@ -89,7 +89,14 @@ extern "C"{
 
 
 	//init database (SQLite) at filepath (create if needed) with structure and start cloud service
-	kerr kdata_init(const char * filepath, kdata_s * structure, DSERVICE service, const char * token);
+	kerr kdata_init(
+			const char * filepath, 
+			kdata_s * structure, 
+			DSERVICE service, 
+			const char * token,
+			void * user_data,
+			int (*daemon_callback)(void * user_data, pthread_t thread, char * msg)			
+	);
 
 	//set int value for table column (key). set uuid to null - to create new row
 	kerr kdata_set_int_for_key(const char * filepath, const char * tablename, const char * uuid, int value, const char * key);
