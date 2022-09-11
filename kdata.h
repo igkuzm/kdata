@@ -15,6 +15,10 @@ extern "C"{
 
 	#include <stdlib.h>
 
+#ifndef __ANDROID__
+	#include <pthread.h>
+#endif
+
 	/*! \enum DSERVICE
 	*
 	*  cloud data service (yandex_disk, google)
@@ -102,8 +106,8 @@ extern "C"{
 
 
 	void kdata_daemon_init(
-			const char * database_path,
-			const char * YD_token,
+			const char * filepath,
+			const char * token,
 			void * user_data,
 			int (*callback)(void * user_data, pthread_t thread, char * msg)
 	);
