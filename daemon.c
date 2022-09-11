@@ -197,7 +197,7 @@ void update_from_cloud_with_data(
 		);	
 }
 
-void yad_update_data(struct kdatad_data_t * d)
+void kdatad_update_data(struct kdatad_data_t * d)
 {
 	int i, k;
 
@@ -320,15 +320,15 @@ void yad_update_data(struct kdatad_data_t * d)
 }
 
 void *
-yad_thread(void * data) 
+kdatad_thread(void * data) 
 {
-	struct yad_data_t *d = data; 
+	struct kdatad_data_t *d = data; 
 
 	while (1) {
 		if (d->callback)
-			if (d->callback(d->user_data, d->thread, "ya daemon: updating data..."))
+			if (d->callback(d->user_data, d->thread, "kdata daemon: updating data..."))
 				break;
-		yad_update_data(d);
+		kdatad_update_data(d);
 		sleep(SEC);
 	}
 
@@ -352,7 +352,7 @@ kdata_daemon_init(
 	err = pthread_attr_init(&attr);
 	if (err) {
 		if (callback)
-			callback(user_data, 0, STR("ya daemon: can't set thread attributes: %d", err));
+			callback(user_data, 0, STR("kdata daemon: can't set thread attributes: %d", err));
 		exit(err);
 	}	
 
@@ -368,7 +368,7 @@ kdata_daemon_init(
 	err = pthread_create(&tid, &attr, yad_thread, d);
 	if (err) {
 		if (callback)
-			callback(user_data, 0, STR("ya daemon: can't create thread: %d", err));
+			callback(user_data, 0, STR("kdata daemon: can't create thread: %d", err));
 		exit(err);
 	}
 }
