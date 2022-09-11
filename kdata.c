@@ -32,36 +32,76 @@ kdata_t * kdata_table_init(){
 	return s;
 }
 
-kerr kdata_table_add(kdata_t * s, DTYPE type, const char * key){
-	if (!s)
+kerr kdata_table_add(kdata_t * t, DTYPE type, const char * key){
+	if (!t)
 		return KERR_NULLSTRUCTURE;
 
 	kdata_t * n = kdata_table_init();
 	if (!n) 
 		return KERR_ENOMEM;
 
-	n->next = s;
+	n->next = t;
 	n->type = type;
 	strncpy(n->key, key, sizeof(n->key) - 1); 
 	n->key[sizeof(n->key) - 1] = 0;
 
-	s = n;
+	t = n;
 
 	return KERR_NOERR;
 }
 
-kerr kdata_table_free(kdata_t * s){
-	if (!s)
+kerr kdata_table_free(kdata_t * t){
+	if (!t)
 		return KERR_NULLSTRUCTURE;
 	
-	while (s) {
-		kdata_t * ptr = s;
-		s = ptr->next;
+	while (t) {
+		kdata_t * ptr = t;
+		t = ptr->next;
 		free(ptr);
 	}
 	
 	return KERR_NOERR;
 }
+
+kdata_s * kdata_structure_init(){
+	kdata_s * s = malloc(sizeof(kdata_s));
+	if (!s) 
+		return NULL;
+	s->next = NULL;
+	return s;	
+}
+
+kerr kdata_structure_add(kdata_s * s, kdata_t * table, const char * tablename){
+	if (!s)
+		return KERR_NULLSTRUCTURE;
+
+	kdata_s * n = kdata_structure_init();
+	if (!n) 
+		return KERR_ENOMEM;
+
+	n->next = s;
+	n->table = table;
+	strncpy(n->tablename, tablename, sizeof(n->tablename) - 1); 
+	n->tablename[sizeof(n->tablename) - 1] = 0;
+
+	s = n;
+
+	return KERR_NOERR;	
+}
+
+kerr kdata_structure_free(kdata_s * s){
+	if (!s)
+		return KERR_NULLSTRUCTURE;
+	
+	while (s) {
+		kdata_s * ptr = s;
+		s = ptr->next;
+		free(ptr);
+	}
+	
+	return KERR_NOERR;	
+}
+
 
 kerr kdata_init(const char * filepath, kdata_t * structure, DSERVICE service, const char * token){
 	int res = sqlite_connect_create_database(filepath);
