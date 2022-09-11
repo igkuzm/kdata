@@ -103,10 +103,40 @@ kerr kdata_structure_free(kdata_s * s){
 }
 
 
-kerr kdata_init(const char * filepath, kdata_t * structure, DSERVICE service, const char * token){
+kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char * token){
 	int res = sqlite_connect_create_database(filepath);
 	if (res) 
 		return KERR_SQLITE_CREATE;
 	
 	char SQL[BUFSIZ] = "CREATE TABLE IF NOT EXISTS ";
+	while (s) {
+		kdata_t * t = s->table;
+		if (t){
+			strcat(SQL, s->tablename);
+			strcat(SQL, " ( ");
+			while(t) {
+				char * type;
+				switch (t->type) {
+					case DTYPE_INT : type="INT" ; break;
+					case DTYPE_TEXT: type="TEXT"; break;
+					case DTYPE_DATA: type="BLOB"; break;
+				}
+
+				char str[256];
+				sprintf(str, "%s %s, ", t->key, type);
+				strcat(SQL, str);
+				
+				t = t->next;
+			}
+
+			strcat(SQL, "uuid TEXT )");
+
+			int res = sqlite_connect_execute(SQL, filepath);
+			if (res) 
+				return KERR_SQLITE_CREATE;
+		}
+		
+		s = s->next;
+	}
+	
 }
