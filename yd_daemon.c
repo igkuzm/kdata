@@ -1,5 +1,5 @@
 /**
- * File              : daemon.c
+ * File              : yd_daemon.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 20.07.2022
  * Last Modified Date: 12.09.2022
@@ -13,7 +13,7 @@
 #include <unistd.h>  //for sleep
 
 #include "kdata.h"
-#include "sqlite2yandexdisk.h"
+#include "yd.h"
 #include "SQLiteConnect/SQLiteConnect.h"
 #include "cYandexDisk/cYandexDisk.h"
 
