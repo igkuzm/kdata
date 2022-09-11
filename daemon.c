@@ -69,7 +69,7 @@ void kdatad_t_array_append(struct kdatad_t_array * array, struct kdatad_t item){
 	array->data = REALLOC(array->data, sizeof(struct kdatad_t) + sizeof(struct kdatad_t) * array->len);
 }
 
-void yad_t_array_free(struct kdatad_t_array * array){
+void kdatad_t_array_free(struct kdatad_t_array * array){
 	FREE(array->data);
 	FREE(array);
 }
