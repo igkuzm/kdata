@@ -19,6 +19,7 @@ const char * kdata_parse_kerr(kerr err){
 		case KERR_NOFILE: return "no such file or directory";
 		case KERR_DTYPE: return "error of data type";
 		case KERR_SQLITE_CREATE: return "SQLite: can't create/access database";
+		case KERR_SQLITE_EXECUTE: return "SQLite: execute error";
 		case KERR_NULLSTRUCTURE: return "data structure is NULL";
 	}
 	return "";
@@ -133,7 +134,7 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 
 			int res = sqlite_connect_execute(SQL, filepath);
 			if (res) 
-				return KERR_SQLITE_CREATE;
+				return KERR_SQLITE_EXECUTE;
 		}
 		
 		s = s->next;
