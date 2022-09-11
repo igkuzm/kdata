@@ -44,6 +44,10 @@ extern "C"{
 		KERR_DTYPE,
 		KERR_NULLSTRUCTURE
    	} kerr;
+	
+	//parse kerr to error
+	const char * kdata_parse_kerr(kerr err, const char * error);
+	
 	//list of data structure
 	typedef struct kdata_t {
 		DTYPE type;
@@ -57,8 +61,6 @@ extern "C"{
 	//add type for key to data strucuture
 	kerr kdata_structure_add(kdata_t * structure, DTYPE type, const char * key);
 
-	//parse kerr to error
-	const char * kdata_parse_kerr(kerr err, const char * error);
 
 	//init database (SQLite) at filepath (create if needed) with structure and start cloud service
 	kerr kdata_init(const char * filepath, kdata_t * structure, DSERVICE service, const char * token);
