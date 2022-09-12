@@ -123,12 +123,12 @@ kerr kdata_structure_add(
 	if (!n) //ckeck if null
 		return KERR_ENOMEM;
 
-	n->next = s;	
-	n->table.columns_count = t.columns_count;
-	strcpy(n->table.tablename, t.tablename);
-	n->table.columns = t.columns;
+	/*n->next = s;	*/
+	s->table.columns_count = t.columns_count;
+	strcpy(s->table.tablename, t.tablename);
+	s->table.columns = t.columns;
 	
-	s = n; //change pointer to new
+	/*s = n; //change pointer to new*/
 
 	return KERR_NOERR;	
 }
