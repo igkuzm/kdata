@@ -43,11 +43,11 @@ kdata_s * kdata_structure_init(){
 	return s;	
 }
 
-kerr kdata_structure_add(kdata_s * s, kdata_s * table){
-	if (!s || !table) //ckeck if strucuture null
+kerr kdata_structure_add(kdata_s * s, kdata_s table){
+	if (!s) //ckeck if strucuture null
 		return KERR_NULLSTRUCTURE;
 
-	if (!strcmp(table->tablename, "kdata_updates")) //dont use name 'kdata_updates' for key
+	if (!strcmp(table.tablename, "kdata_updates")) //dont use name 'kdata_updates' for key
 		return KERR_DONTUSEKDATAUPDATES;
 	
 	kdata_s * n = kdata_structure_init();
@@ -55,13 +55,13 @@ kerr kdata_structure_add(kdata_s * s, kdata_s * table){
 		return KERR_ENOMEM;
 
 	n->next = s;
-	n->columns_count = table->columns_count;
+	n->columns_count = table.columns_count;
 	//copy columns
 	int i;
 	for (int i = 0; i < n->columns_count; i++) {
-		n->columns[i] = table->columns[i];	
+		n->columns[i] = table.columns[i];	
 	}
-	strncpy(n->tablename, table->tablename, sizeof(n->tablename) - 1); 
+	strncpy(n->tablename, table.tablename, sizeof(n->tablename) - 1); 
 	n->tablename[sizeof(n->tablename) - 1] = 0;
 
 	s = n; //change pointer to new
@@ -331,7 +331,8 @@ kerr kdata_set_data_for_key(
 
 struct kdata_for_each_t {
 	void *user_data;
-	int (*callback) (void * user_data, int argc, kdata_t * argv, kerr err);
+	kdata_s * table;
+	int (*callback) (void * user_data, int argc, kdata_d * argv, kerr err);
 };
 
 int 
@@ -345,7 +346,7 @@ kdata_for_each_callback(
 	struct kdata_for_each_t *t = user_data;
 
 	//allocate array of values
-	kdata_t * a = malloc(sizeof(kdata_t) * argc);
+	kdata_d * a = malloc(sizeof(kdata_d) * argc);
 	if (!a){
 		if (t->callback)
 			t->callback(t->user_data, 0, NULL, KERR_ENOMEM);
