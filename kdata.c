@@ -137,6 +137,7 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 						case DTYPE_INT : type="INT" ; break;
 						case DTYPE_TEXT: type="TEXT"; break;
 						case DTYPE_DATA: type="BLOB"; break;
+						default: break;
 					}
 
 					char str[256];
