@@ -60,29 +60,16 @@ extern "C"{
 	//parse kerr to error
 	const char * kdata_parse_kerr(kerr err);
 	
-	//list of table structure
+	//table structure
 	typedef struct kdata_t {
 		DTYPE type;
 		char key[128];
-		struct kdata_t * next;
 	} kdata_t;
-
-	//create new table structure
-	kdata_t * kdata_table_init();
-
-	//add type for key to table strucuture
-	kerr kdata_table_add(
-			kdata_t * table, 
-			DTYPE type, 
-			const char * key
-	);
-	
-	//free table structure
-	kerr kdata_table_free(kdata_t * table);
 
 	//list of database structure
 	typedef struct kdata_s {
-		struct kdata_t * table;
+		int * tables_count;
+		struct kdata_t * tables;
 		char tablename[128];
 		struct kdata_s * next;
 	} kdata_s;
