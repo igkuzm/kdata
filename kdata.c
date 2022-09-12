@@ -71,6 +71,8 @@ void kdata_table_init(kdata_table * t, const char * tablename, ...){
 		//new column
 		kdata_column c = {.type = type};
 		strcpy(c.key, key);
+
+		printf("COL NAME: %s\n", c.key);
 		
 		//add column to array
 		t->columns[count] = c;
