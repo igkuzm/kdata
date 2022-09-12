@@ -7,10 +7,13 @@
  */
 
 #include "kdata.h"
+#include <stdio.h>
 
 int main(int argc, char *argv[])
 {
 	
+	printf("press any key to exit\n");
+	getchar();
 	return 0;
 }
 
