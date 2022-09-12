@@ -70,17 +70,34 @@ extern "C"{
 	} kdata_column;
 
 	//database table structure
-	typedef struct kdata_s {
+	typedef struct kdata_table {
+		char tablename[128];
 		int columns_count;
 		kdata_column * columns;
-		char tablename[128];
 		struct kdata_s * next;
-	} kdata_s;
+	} kdata_table;
+	
+	//new table with columns 
+	kdata_table * kdata_table_new(
+			const char * tablename, 
+			...                     //type, key, ... NULL
+	);
+	
+	//database structure
+	typedef struct kdata_s {
+		struct kdata_table * table;
+		struct kdata_s * next;
+	} kdata_s;	
 
 	//create new database structure
 	kdata_s * kdata_structure_init();
 
 	//add table to data strucuture
+	kerr kdata_structure_add(
+		kdata_s * strucuture, 
+		kdata_table * table
+	);
+	
 	kerr kdata_structure_add_table(
 		kdata_s * strucuture, 
 		const char * tablename,
