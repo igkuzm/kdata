@@ -23,6 +23,7 @@ const char * kdata_parse_kerr(kerr err){
 		case KERR_ENOMEM: return "not enough memory";
 		case KERR_NOFILE: return "no such file or directory";
 		case KERR_NODATA: return "no data to send";
+		case KERR_BASE64: return "base64 encode/decode error";
 		case KERR_DTYPE: return "error of data type";
 		case KERR_DONTUSEUUID: return "error key can't be 'uuid' - it is used";
 		case KERR_DONTUSEKDATAUPDATES: return "error table name can't be 'kdata_updates' - it is used";
