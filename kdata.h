@@ -97,13 +97,6 @@ extern "C"{
 		kdata_table * table
 	);
 	
-	kerr kdata_structure_add_table(
-		kdata_s * strucuture, 
-		const char * tablename,
-		int columns_count,
-		kdata_column * columns
-	);
-	
 	//free data structure
 	kerr kdata_structure_free(kdata_s * strucuture);	
 
