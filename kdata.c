@@ -354,79 +354,33 @@ kdata_for_each_callback(
 	}
 
 	for (int i = 0; i < argc; ++i) {
-		char buff[128];
+		char buff[TEXTMAXSIZE];
 		if (!argv[i]) buff[0] = '\0'; //no seg falt on null
 		else {
-			strncpy(buff, argv[i], 127);
-			buff[127] = '\0';
+			strncpy(buff, argv[i], TEXTMAXSIZE - 1);
+			buff[TEXTMAXSIZE - 1] = '\0';
 		}
+		
+		kdata_d value;
+		kdata_column col = t->table->columns[i];
 
-		switch (i) {
-			case 0:  item.id = atoi(buff)                ; break;
-			case 1:  strcpy(item.uuid, buff)             ; break;
-			case 2:  item.date = atoi(buff)              ; break;
-			case 3:  strcpy(item.name, buff)             ; break;
-			case 4:  strcpy(item.latin_name, buff)       ; break;
-			case 5:  strcpy(item.region, buff)           ; break;
-			case 6:  strcpy(item.kategory, buff)         ; break;
-			case 7:  strcpy(item.method, buff)           ; break;
-			case 8:  strcpy(item.company, buff)          ; break;
+		switch (col.type) {
+			case DTYPE_INT:  value.int_value = atoi(buff)   ; break;
+			case DTYPE_TEXT: strcpy(value.text_value, buff) ; break;
 
-			case 9:  strcpy(item.color, buff)            ; break;
-			case 10: strcpy(item.clearness, buff)        ; break;
-			case 11: strcpy(item.intensity, buff)        ; break;
-			case 12: strcpy(item.transparence, buff)     ; break;
-			case 13: strcpy(item.fluidity, buff)         ; break;
-			case 14: strcpy(item.ductility, buff)        ; break;
-			case 15: strcpy(item.volatility, buff)       ; break;
-			case 16: strcpy(item.integrality, buff)      ; break;
-
-			case 17: item.olfactory = atoi(buff)         ; break;
-
-			case 18: strcpy(item.olfactory_fist, buff)   ; break;
-			case 19: strcpy(item.olfactory_second, buff) ; break;
-			case 20: strcpy(item.olfactory_third, buff)  ; break;
-			case 21: strcpy(item.olfactory_last, buff)   ; break;
-
-			case 22: strcpy(item.sin_color, buff)        ; break;
-			case 23: strcpy(item.sin_sound, buff)        ; break;
-			case 24: strcpy(item.sin_form, buff)         ; break;
-			case 25: strcpy(item.sin_simbol, buff)       ; break;
-
-			case 26: item.rating_phis = atoi(buff)       ; break;
-			case 27: item.rating_aroma = atoi(buff)      ; break;
-			case 28: item.rating_energy = atoi(buff)     ; break;
-
-			case 29: strcpy(item.rating, buff)           ; break;
-
-			//parse image
-			case 30: 
+			case DTYPE_DATA:  				
 				{
-					item.image0_len = 0;
-					item.image0 = NULL;
-					if (argv[i] != NULL && argv[i+1] != NULL) {
-						size_t len = atoi(argv[i+1]);
+					value.data_len = 0;
+					value.data_value = NULL;
+					if (argv[i] != NULL) {
+						size_t len = strlen(argv[i]);
 						size_t size;
 						unsigned char * data = base64_decode(argv[i], len, &size);
-						item.image0_len = size;
-						item.image0 = data;
+						value.data_len = size;
+						value.data_value = data;
 					}
 				} 
 				break;
-
-			case 32: 
-				{
-					item.image1_len = 0;
-					item.image1 = NULL;
-					if (argv[i] != NULL && argv[i+1] != NULL) {
-						size_t len = atoi(argv[i+1]);
-						size_t size;
-						unsigned char * data = base64_decode(argv[i], len, &size);
-						item.image1_len = size;
-						item.image1 = data;
-					}
-				} 
-				break;				
 
 			default:                                       break;
 		}
