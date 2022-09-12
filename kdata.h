@@ -109,7 +109,6 @@ extern "C"{
 		char * text_value;
 		void * data_value;
 		size_t data_len;
-		struct kdata_t * next;
 	} kdata_d;	
 
 	//init database (SQLite) at filepath (create if needed) with structure and start cloud service
@@ -176,7 +175,7 @@ extern "C"{
 			void * user_data,
 			int (*callback)(
 				void * user_data, 
-				int value, 
+				kdata_t * values, 
 				kerr err)
 	);
 
