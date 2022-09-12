@@ -79,9 +79,11 @@ extern "C"{
 	kdata_s * kdata_structure_init();
 
 	//add table to data strucuture
-	kerr kdata_structure_add(
+	kerr kdata_structure_add_table(
 		kdata_s * strucuture, 
-		kdata_s table 
+		const char * tablename,
+		int columns_count,
+		kdata_column * columns
 	);
 	
 	//free data structure
@@ -99,15 +101,15 @@ extern "C"{
 
 	//init database (SQLite) at filepath (create if needed) with structure and start cloud service
 	kerr kdata_init(
-			const char * filepath, 
-			kdata_s * structure, 
-			DSERVICE service, 
-			const char * token,
-			void * user_data,
-			int (*daemon_callback)(
-				void * user_data, 
-				pthread_t thread, 
-				char * msg)			
+		const char * filepath, 
+		kdata_s * structure, 
+		DSERVICE service, 
+		const char * token,
+		void * user_data,
+		int (*daemon_callback)(
+			void * user_data, 
+			pthread_t thread, 
+			char * msg)			
 	);
 
 	//add row
