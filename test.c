@@ -41,9 +41,9 @@ int main(int argc, char *argv[])
 	kdata_table my_table;
 	my_table_init(&my_table);
 	kdata_s * s = kdata_structure_init();
-	kdata_structure_add(s, &my_table);
+	kdata_structure_add(s, my_table);
 
-	printf("TABLENAME: %s\n", s->next->table.tablename);
+	printf("TABLENAME: %s\n", s->table.tablename);
 
 	/*while (s) {*/
 		/*kdata_table t = s->table;*/
