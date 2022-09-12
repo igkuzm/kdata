@@ -80,7 +80,7 @@ extern "C"{
 	//free table structure
 	kerr kdata_table_free(kdata_t * table);
 
-	//list of data structure
+	//list of database structure
 	typedef struct kdata_s {
 		struct kdata_t * table;
 		char tablename[128];
@@ -100,6 +100,17 @@ extern "C"{
 	//free data structure
 	kerr kdata_structure_free(kdata_s * strucuture);	
 
+
+	//list of data values
+	typedef struct kdata_d {
+		DTYPE type;
+		char key[128];
+		int int_value;
+		char * text_value;
+		void * data_value;
+		size_t data_len;
+		struct kdata_t * next;
+	} kdata_d;	
 
 	//init database (SQLite) at filepath (create if needed) with structure and start cloud service
 	kerr kdata_init(
@@ -158,10 +169,10 @@ extern "C"{
 	);
 
 	//get int for key
-	void kdata_get_int_for_key(
+	void kdata_for_each(
 			const char * filepath, 
-			const char * tablename, 
-			const char * uuid, 
+			kdata_t * table,
+			const char * predicate, 
 			void * user_data,
 			int (*callback)(
 				void * user_data, 
