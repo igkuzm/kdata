@@ -63,11 +63,6 @@ void kdata_table_init(kdata_table * t, const char * tablename, ...){
 	//iterate va_args
 	while (type != DTYPE_NONE && key != NULL){
 		
-		type = va_arg(args, DTYPE);
-		key = va_arg(args, char *);
-		if (!key) 
-			break;
-		
 		//new column
 		kdata_column c = {.type = type};
 		strcpy(c.key, key);
@@ -82,6 +77,12 @@ void kdata_table_init(kdata_table * t, const char * tablename, ...){
 		t->columns = realloc(t->columns, (sizeof(kdata_column) + sizeof(kdata_column) * count));
 		if (!t->columns)
 			return;
+		
+		type = va_arg(args, DTYPE);
+		key = va_arg(args, char *);
+		if (!key) 
+			break;
+		
 	}
 	t->columns_count = count;
 }
