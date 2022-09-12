@@ -76,11 +76,8 @@ extern "C"{
 		kdata_column * columns;
 	} kdata_table;
 	
-	//new table with columns 
-	kdata_table * kdata_table_new(
-			const char * tablename, 
-			...                     //type, key, ... NULL
-	);
+	//new table with columns; va_args: type, key, ... NULL
+	void kdata_table_init(kdata_table * t, const char * tablename, ...); 
 
 	//free table
 	void kdata_table_free(kdata_table * table);
