@@ -329,12 +329,6 @@ kerr kdata_set_data_for_key(
 	return KERR_NOERR;	
 }
 
-struct kdata_for_each_t {
-	void * user_data;
-	kdata_s * table;
-	int (*callback) (void * user_data, int argc, kdata_d * argv, kerr err);
-};
-
 void kdata_d_value_init(kdata_d * value){
 	value->type = DTYPE_NONE;
 	value->key[0] = 0;
@@ -344,8 +338,13 @@ void kdata_d_value_init(kdata_d * value){
 	value->data_len = 0;
 } 
 
-int 
-kdata_for_each_callback(
+struct kdata_for_each_t {
+	void * user_data;
+	kdata_s * table;
+	int (*callback) (void * user_data, int argc, kdata_d * argv, kerr err);
+};
+
+int kdata_for_each_callback(
 		void *user_data, 
 		int argc, 
 		char *argv[], 
@@ -354,7 +353,7 @@ kdata_for_each_callback(
 {
 	struct kdata_for_each_t *t = user_data;
 
-	//allocate array of values
+	//allocate row
 	kdata_d * a = malloc(sizeof(kdata_d) * argc);
 	if (!a){
 		if (t->callback)
@@ -362,6 +361,7 @@ kdata_for_each_callback(
 		return 0;
 	}
 
+	//iterate columns
 	for (int i = 0; i < argc; ++i) {
 		
 		kdata_d value;
@@ -395,12 +395,15 @@ kdata_for_each_callback(
 			}
 		}
 
+		//add column to row
 		a[i] = value;
 	}
 
+	//callback row
 	if (t->callback)
 		t->callback(t->user_data, argc, a, KERR_NOERR);
 
+	//free memory
 	free(a);
 
 	return 0;
