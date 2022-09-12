@@ -330,7 +330,7 @@ kerr kdata_set_data_for_key(
 }
 
 struct kdata_for_each_t {
-	void *user_data;
+	void * user_data;
 	kdata_s * table;
 	int (*callback) (void * user_data, int argc, kdata_d * argv, kerr err);
 };
