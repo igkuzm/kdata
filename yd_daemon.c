@@ -17,8 +17,6 @@
 #include "SQLiteConnect/SQLiteConnect.h"
 #include "cYandexDisk/cYandexDisk.h"
 
-#define SEC 300
-#define PATH "data"
 
 #define STR(...) ({char ___str[BUFSIZ]; sprintf(___str, __VA_ARGS__); ___str;})
 
