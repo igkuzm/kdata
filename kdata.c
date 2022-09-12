@@ -52,11 +52,17 @@ kdata_s * kdata_structure_init(){
 	return s;	
 }
 
-kerr kdata_structure_add(kdata_s * s, kdata_s table){
+kerr kdata_structure_add(
+		kdata_s * s,
+		const char * tablename,
+		int columns_count,
+		kdata_column * columns		
+		)
+{
 	if (!s) //ckeck if strucuture null
 		return KERR_NULLSTRUCTURE;
 
-	if (!strcmp(table.tablename, "kdata_updates")) //dont use name 'kdata_updates' for key
+	if (!strcmp(tablename, "kdata_updates")) //dont use name 'kdata_updates' for key
 		return KERR_DONTUSEKDATAUPDATES;
 	
 	kdata_s * n = kdata_structure_init();
@@ -64,13 +70,13 @@ kerr kdata_structure_add(kdata_s * s, kdata_s table){
 		return KERR_ENOMEM;
 
 	n->next = s;
-	n->columns_count = table.columns_count;
+	n->columns_count = columns_count;
 	//copy columns
 	int i;
-	for (int i = 0; i < n->columns_count; i++) {
-		n->columns[i] = table.columns[i];	
+	for (int i = 0; i < columns_count; i++) {
+		n->columns[i] = columns[i];	
 	}
-	strncpy(n->tablename, table.tablename, sizeof(n->tablename) - 1); 
+	strncpy(n->tablename, tablename, sizeof(n->tablename) - 1); 
 	n->tablename[sizeof(n->tablename) - 1] = 0;
 
 	s = n; //change pointer to new
@@ -411,7 +417,7 @@ int kdata_for_each_callback(
 
 void kdata_for_each(
 		const char * filepath, 
-		kdata_s table,
+		kdata_s * table,
 		const char * predicate, 
 		void * user_data,
 		int (*callback)(
@@ -424,7 +430,7 @@ void kdata_for_each(
 	struct kdata_for_each_t t = {
 		.user_data = user_data,
 		.callback = callback,
-		.table = &table
+		.table = table
 	};
 
 	char SQL[BUFSIZ];
@@ -432,7 +438,7 @@ void kdata_for_each(
 	if (predicate)
 		strcat(SQL, predicate);
 	
-	int res = sqlite_connect_execute_function(SQL, database, &t, kdata_for_each_callback);
+	int res = sqlite_connect_execute_function(SQL, filepath, &t, kdata_for_each_callback);
 	if (res){
 		if (callback)
 			callback(user_data, 0, NULL, KERR_SQLITE_EXECUTE);
