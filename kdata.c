@@ -109,8 +109,8 @@ kdata_s * kdata_structure_init(){
 }
 
 kerr kdata_structure_add(
-		kdata_s * s, 
-		kdata_table t		
+		kdata_s ** s, 
+		kdata_table *t		
 		)
 {
 	if (!s) //ckeck if strucuture null
