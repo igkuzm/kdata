@@ -25,11 +25,11 @@ void my_table_init(kdata_table * table) {
 }
 
 int add_callback(void *user_data, char *uuid, kerr err){
-	char **_uuid = user_data;
+	char *_uuid = user_data;
 	if (err)
 		printf("%s\n", kdata_parse_kerr(err));
 	else
-		strcpy(*_uuid, uuid);
+		strcpy(_uuid, uuid);
 	return 0;
 }
 
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 
 	//add new item
 	char uuid[37];
-	kdata_add(DATABASE, my_table.tablename, &uuid, add_callback);
+	kdata_add(DATABASE, my_table.tablename, uuid, add_callback);
 	printf("UUID: %s\n", uuid);
 	
 	printf("Done. press any key to exit\n");
