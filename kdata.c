@@ -148,7 +148,22 @@ kerr kdata_structure_add(
 		kdata_table * t		
 		)
 {
-	return kdata_structure_add_table(s, t->tablename, t->columns_count, t->columns);
+	if (!s) //ckeck if strucuture null
+		return KERR_NULLSTRUCTURE;
+
+	if (!strcmp(t->tablename, "kdata_updates")) //dont use name 'kdata_updates' for key
+		return KERR_DONTUSEKDATAUPDATES;
+
+	kdata_s * n = kdata_structure_init();
+	if (!n) //ckeck if null
+		return KERR_ENOMEM;
+
+	n->next = s;	
+	n->table = *t;
+	
+	s = n; //change pointer to new
+
+	return KERR_NOERR;	
 }
 
 kerr kdata_structure_free(kdata_s * s){
