@@ -45,11 +45,11 @@ int main(int argc, char *argv[])
 
 	printf("TABLENAME: %s\n", s->table.tablename);
 
-	/*while (s) {*/
-		/*kdata_table t = s->table;*/
-		/*printf("COLS: %d\n", t.columns_count);*/
-		/*s = s->next;*/
-	/*}*/
+	while (s) {
+		kdata_table t = s->table;
+		printf("COLS: %d\n", t.columns_count);
+		s = s->next;
+	}
 
 	//init database
 	/*kdata_init(DATABASE, s, DSERVICE_LOCAL, NULL, NULL, NULL);*/
