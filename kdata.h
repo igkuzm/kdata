@@ -155,7 +155,7 @@ extern "C"{
 			const char * key
 	);
 
-	//get int for key
+	//iterate all rows for column
 	void kdata_for_each(
 			const char * filepath, 
 			const kdata_s * table,
