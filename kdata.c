@@ -248,6 +248,28 @@ void kdata_add(
 	free(uuid);
 }
 
+kerr kdata_remove(
+		const char * filepath, 
+		const char * tablename, 
+		const char * uuid
+		){
+	
+	//remove row
+	char SQL[BUFSIZ];
+	sprintf(SQL, 
+			"DELETE FROM %s WHERE uuid = '%s'",
+			tablename, uuid);
+	
+	int res = sqlite_connect_execute(SQL, filepath);
+	if (res)
+		return KERR_SQLITE_EXECUTE;
+
+	//update kdata_update table
+	update_timestamp_for_uuid(filepath, tablename, uuid, 1);
+	
+	return KERR_NOERR;	
+}	
+
 kerr kdata_set_int_for_key(
 		const char * filepath, 
 		const char * tablename, 
@@ -271,6 +293,28 @@ kerr kdata_set_int_for_key(
 	return KERR_NOERR;	
 }
 
+kerr kdata_set_text_for_key(
+		const char * filepath, 
+		const char * tablename, 
+		const char * uuid, 
+		const char * text, 
+		const char * key
+		){
+	
+	char SQL[TEXTMAXSIZE];
+	sprintf(SQL, 
+			"UPDATE %s SET %s = '%s' WHERE uuid = '%s'",
+			tablename, key, text, uuid);
+	
+	int res = sqlite_connect_execute(SQL, filepath);
+	if (res)
+		return KERR_SQLITE_EXECUTE;
+
+	//update kdata_update table
+	update_timestamp_for_uuid(filepath, tablename, uuid, 0);
+	
+	return KERR_NOERR;	
+}
 
 
 void
@@ -282,6 +326,14 @@ kdata_daemon_init(
 			int (*callback)(void * user_data, pthread_t thread, char * msg)
 		)
 {
-	if (service == DSERVICE_YANDEX)
+	if (service == DSERVICE_LOCAL){
+		if (callback)
+			callback(user_data, NULL, "kdata daemon: local only");
+		return;
+	}
+
+	if (service == DSERVICE_YANDEX){
 		yd_daemon_init(filepath, token, user_data, callback);
+		return;
+	}
 }
