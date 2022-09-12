@@ -360,7 +360,7 @@ kerr kdata_set_data_for_key(
 
 struct kdata_for_each_t {
 	void * user_data;
-	const kdata_s * table;
+	const kdata_table * table;
 	int (*callback) (void * user_data, int argc, kdata_d * argv, kerr err);
 };
 
@@ -433,7 +433,7 @@ int kdata_for_each_callback(
 
 void kdata_for_each(
 		const char * filepath, 
-		const kdata_s * table,
+		const kdata_table * table,
 		const char * predicate, 
 		void * user_data,
 		int (*callback)(
