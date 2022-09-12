@@ -46,6 +46,7 @@ int main(int argc, char *argv[])
 	while (s) {
 		kdata_table t = s->table;
 		printf("COLS: %d\n", t.columns_count);
+		s = s->next;
 	}
 
 	//init database
