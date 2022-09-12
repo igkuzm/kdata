@@ -175,7 +175,8 @@ extern "C"{
 			void * user_data,
 			int (*callback)(
 				void * user_data, 
-				kdata_t * values, 
+				int argc,
+				kdata_t * argv, 
 				kerr err)
 	);
 
