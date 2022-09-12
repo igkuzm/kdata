@@ -438,29 +438,34 @@ kdata_for_each_callback(
 	return 0;
 }
 
-void
-ya_rating_for_each(
-		const char * database,
-		const char * predicate,
-		void * user_data, 
-		int (*callback) (
-			struct ya_rating_t *item, 
-			void *user_data, 
-			char *error
-			)
+void kdata_for_each(
+		const char * filepath, 
+		kdata_s table,
+		const char * predicate, 
+		void * user_data,
+		int (*callback)(
+			void * user_data, 
+			int argc,
+			kdata_d * values, 
+			kerr err)
 		)
 {
-	struct ya_rating_for_each_t t;
-	t.user_data = user_data;
-	t.callback = callback;
+	struct kdata_for_each_t t = {
+		.user_data = user_data,
+		.callback = callback,
+		.table = &table
+	};
 
 	char SQL[BUFSIZ];
-	if (predicate) {
-		sprintf(SQL, "SELECT * FROM rating WHERE %s", predicate);	
-	} else {
-	   	sprintf(SQL, "SELECT * FROM rating");
-	}
-	sqlite_connect_execute_function(SQL, database, &t, ya_rating_for_each_callback);
+	sprintf(SQL, "SELECT * FROM %s ", table.tablename);	
+	if (predicate)
+		strcat(SQL, predicate);
+	
+	int res = sqlite_connect_execute_function(SQL, database, &t, kdata_for_each_callback);
+	if (res){
+		if (callback)
+			callback(user_data, 0, NULL, KERR_SQLITE_EXECUTE);
+	}	
 };
 
 
