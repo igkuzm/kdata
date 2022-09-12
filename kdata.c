@@ -116,19 +116,21 @@ kerr kdata_structure_add(
 	if (!s) //ckeck if strucuture null
 		return KERR_NULLSTRUCTURE;
 
-	if (!strcmp(t.tablename, "kdata_updates")) //dont use name 'kdata_updates' for key
+	if (!strcmp(t->tablename, "kdata_updates")) //dont use name 'kdata_updates' for key
 		return KERR_DONTUSEKDATAUPDATES;
+
+	kdata_s * ptr = *s;
 
 	kdata_s * n = kdata_structure_init();
 	if (!n) //ckeck if null
 		return KERR_ENOMEM;
 
-	/*n->next = s;	*/
-	s->table.columns_count = t.columns_count;
-	strcpy(s->table.tablename, t.tablename);
-	s->table.columns = t.columns;
+	n->next = ptr;	
+	n->table.columns_count = t->columns_count;
+	strcpy(n->table.tablename, t->tablename);
+	n->table.columns = t->columns;
 	
-	/*s = n; //change pointer to new*/
+	*s = n; //change pointer to new
 
 	return KERR_NOERR;	
 }
