@@ -7,6 +7,7 @@
  */
 
 #include "kdata.h"
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,6 +34,32 @@ int add_callback(void *user_data, char *uuid, kerr err){
 	return 0;
 }
 
+int foreach_callback(void *user_data, int argc, kdata_d *argv, kerr err){
+	if (err)
+		printf("%s\n", kdata_parse_kerr(err));
+	else {
+		int i;
+		for (int i = 0; i < argc; i++) {
+			if (!strcmp("ID", argv[i].key)){
+				printf("ID: %d\t", argv[i].int_value);
+			}
+			if (!strcmp("DATE", argv[i].key)){
+				time_t t = argv[i].int_value; 
+				struct tm *tm = localtime(&t);
+				char buff[32];
+				strftime(buff, 32, "%Y/%m/%d %T", tm);
+				printf("DATE: %s\t", buff);
+			}
+			if (!strcmp("NAME", argv[i].key)){
+				printf("NAME: %s\t", argv[i].text_value);
+			}			
+		}
+		printf("\n");
+	}
+
+	return 0;
+}
+
 int main(int argc, char *argv[])
 {
 	printf("Starting KDATA test...\n");
@@ -49,7 +76,14 @@ int main(int argc, char *argv[])
 	//add new item
 	char uuid[37];
 	kdata_add(DATABASE, my_table.tablename, uuid, add_callback);
-	printf("UUID: %s\n", uuid);
+
+	//set values
+	kdata_set_int_for_key(DATABASE, my_table.tablename, uuid, 1, "ID");
+	kdata_set_text_for_key(DATABASE, my_table.tablename, uuid, "Hello World!", "NAME");
+	kdata_set_int_for_key(DATABASE, my_table.tablename, uuid, time(NULL), "DATE");
+
+	//get data from database
+	kdata_for_each(DATABASE, my_table.tablename, NULL, NULL, foreach_callback);
 	
 	printf("Done. press any key to exit\n");
 	getchar();
