@@ -16,7 +16,6 @@
 #include "base64.h"
 
 
-
 const char * kdata_parse_kerr(kerr err){
 	switch (err) {
 		case KERR_NOERR: return "no error";
@@ -346,7 +345,7 @@ kerr kdata_set_data_for_key(
 
 struct kdata_for_each_t {
 	void * user_data;
-	kdata_s * table;
+	const kdata_s * table;
 	int (*callback) (void * user_data, int argc, kdata_d * argv, kerr err);
 };
 
@@ -382,10 +381,12 @@ int kdata_for_each_callback(
 				case DTYPE_INT:  
 					value.int_value = atoi(argv[i]); 
 					break;
+
 				case DTYPE_TEXT: 
 					strncpy(value.text_value, argv[i], TEXTMAXSIZE - 1);
 					value.text_value[TEXTMAXSIZE - 1] = '\0';						
 					break;
+
 				case DTYPE_DATA:  				
 					{
 						size_t len = strlen(argv[i]);
@@ -417,7 +418,7 @@ int kdata_for_each_callback(
 
 void kdata_for_each(
 		const char * filepath, 
-		kdata_s * table,
+		const kdata_s * table,
 		const char * predicate, 
 		void * user_data,
 		int (*callback)(
@@ -427,17 +428,27 @@ void kdata_for_each(
 			kerr err)
 		)
 {
+	//check table
+	if (!table){
+		if (callback)
+			callback(user_data, 0, NULL, KERR_NODATA);
+		return;		
+	}
+
+	//make user_data for callback
 	struct kdata_for_each_t t = {
 		.user_data = user_data,
 		.callback = callback,
 		.table = table
 	};
 
+	//generate SQL string
 	char SQL[BUFSIZ];
-	sprintf(SQL, "SELECT * FROM %s ", table.tablename);	
+	sprintf(SQL, "SELECT * FROM %s ", table->tablename);	
 	if (predicate)
 		strcat(SQL, predicate);
 	
+	//run sql query
 	int res = sqlite_connect_execute_function(SQL, filepath, &t, kdata_for_each_callback);
 	if (res){
 		if (callback)
@@ -445,17 +456,7 @@ void kdata_for_each(
 	}	
 };
 
-
-
-
-
-
-
-
-
-
-void
-kdata_daemon_init(
+void kdata_daemon_init(
 			const char * filepath,
 			DSERVICE service,
 			const char * token,
@@ -474,5 +475,3 @@ kdata_daemon_init(
 		return;
 	}
 }
-
-
