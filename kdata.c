@@ -329,7 +329,7 @@ kerr kdata_set_data_for_key(
 	return KERR_NOERR;	
 }
 
-void kdata_d_value_init(kdata_d * value){
+void kdata_d_init(kdata_d * value){
 	value->type = DTYPE_NONE;
 	value->key[0] = 0;
 	value->int_value = 0;
@@ -365,7 +365,7 @@ int kdata_for_each_callback(
 	for (int i = 0; i < argc; ++i) {
 		
 		kdata_d value;
-		kdata_d_value_init(&value);
+		kdata_d_init(&value);
 		if (titles[i])
 			strcpy(value.key, titles[i]);
 
