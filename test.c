@@ -47,9 +47,9 @@ int main(int argc, char *argv[])
 	kdata_init(DATABASE, s, DSERVICE_LOCAL, NULL, NULL, NULL);
 
 	//add new item
-	//char uuid[37];
-	//kdata_add(DATABASE, my_table.tablename, &uuid, add_callback);
-	//printf("UUID: %s\n", uuid);
+	char uuid[37];
+	kdata_add(DATABASE, my_table.tablename, &uuid, add_callback);
+	printf("UUID: %s\n", uuid);
 	
 	printf("Done. press any key to exit\n");
 	getchar();
