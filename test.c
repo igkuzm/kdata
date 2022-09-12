@@ -18,7 +18,7 @@
 //table
 void my_table_init(kdata_table * table) {
 	kdata_table_init(table, "my_table", 
-		/*DTYPE_INT,  "ID",*/
+		DTYPE_INT,  "ID",
 		DTYPE_TEXT, "NAME",
 		DTYPE_INT,  "DATE",
 		NULL
