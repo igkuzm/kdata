@@ -80,7 +80,7 @@ extern "C"{
 	//add table to data strucuture
 	kerr kdata_structure_add(
 		kdata_s * strucuture, 
-		kdata_s * table 
+		kdata_s table 
 	);
 	
 	//free data structure
@@ -155,7 +155,7 @@ extern "C"{
 	//get int for key
 	void kdata_for_each(
 			const char * filepath, 
-			kdata_s * table,
+			kdata_s table,
 			const char * predicate, 
 			void * user_data,
 			int (*callback)(
