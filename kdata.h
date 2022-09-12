@@ -75,7 +75,7 @@ extern "C"{
 		struct kdata_s * next;
 	} kdata_s;
 
-	//create new data structure
+	//create new database structure
 	kdata_s * kdata_structure_init();
 
 	//add table to data strucuture
@@ -158,7 +158,7 @@ extern "C"{
 	//get int for key
 	void kdata_for_each(
 			const char * filepath, 
-			kdata_s table,
+			const kdata_s * table,
 			const char * predicate, 
 			void * user_data,
 			int (*callback)(
