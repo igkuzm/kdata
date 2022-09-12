@@ -135,18 +135,19 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 	
 	//create table for each in strucuture
 	while (s) {
-		if (s->columns_count > 0){
+		kdata_table t = s->table;
+		if (t.columns_count > 0){
 			char SQL[BUFSIZ] = "CREATE TABLE IF NOT EXISTS ";
-			strcat(SQL, s->tablename);
+			strcat(SQL, t.tablename);
 			strcat(SQL, " ( ");
 		
 			int i;
-			for (int i = 0; i < s->columns_count; i++) {
-				kdata_column t = s->columns[i];
+			for (int i = 0; i < t.columns_count; i++) {
+				kdata_column c = t.columns[i];
 
-				if (strcmp("uuid", t.key)) { //check if key is not 'uuid'
+				if (strcmp("uuid", c.key)) { //check if key is not 'uuid'
 					char * type;
-					switch (t.type) {
+					switch (c.type) {
 						case DTYPE_INT : type="INT" ; break;
 						case DTYPE_TEXT: type="TEXT"; break;
 						case DTYPE_DATA: type="BLOB"; break;
@@ -154,7 +155,7 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 					}
 
 					char str[256];
-					sprintf(str, "%s %s, ", t.key, type);
+					sprintf(str, "%s %s, ", c.key, type);
 					strcat(SQL, str);
 				}
 			}
