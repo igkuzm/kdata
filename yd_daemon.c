@@ -27,7 +27,7 @@
 #define NEW(T) ((T*)MALLOC(sizeof(T)))
 
 
-struct kdatad_data_t{
+struct yd_data_t{
 	char database_path[BUFSIZ];
 	char token[128];
 	void * user_data;
@@ -39,7 +39,7 @@ struct kdatad_data_t{
 	int deleted;	
 };
 
-struct kdatad_t {
+struct yd_t {
 	int id;
 	char uuid[37];
 	char tablename[256];
@@ -48,39 +48,39 @@ struct kdatad_t {
 	int deleted;
 };
 
-struct kdatad_t_array{
-	struct kdatad_t * data;
+struct yd_t_array{
+	struct yd_t * data;
 	int len;
 };
 
-struct kdatad_t_array * kdatad_t_array_new(){
-	struct kdatad_t_array * array = NEW(struct kdatad_t_array);
-	array->data = NEW(struct kdatad_t);
+struct yd_t_array * yd_t_array_new(){
+	struct yd_t_array * array = NEW(struct yd_t_array);
+	array->data = NEW(struct yd_t);
 	array->len = 0;
 	return array;
 }
 
-void kdatad_t_array_append(struct kdatad_t_array * array, struct kdatad_t item){
-	struct kdatad_t * data = array->data;
+void yd_t_array_append(struct yd_t_array * array, struct yd_t item){
+	struct yd_t * data = array->data;
 	data[array->len] = item;
 	array->len++;
-	array->data = REALLOC(array->data, sizeof(struct kdatad_t) + sizeof(struct kdatad_t) * array->len);
+	array->data = REALLOC(array->data, sizeof(struct yd_t) + sizeof(struct yd_t) * array->len);
 }
 
-void kdatad_t_array_free(struct kdatad_t_array * array){
+void kdatad_t_array_free(struct yd_t_array * array){
 	FREE(array->data);
 	FREE(array);
 }
 
 #define kdatad_t_array_for_each(array, item)\
-		struct kdatad_t * ___data = array->data;\
-		struct kdatad_t * ___p, item;\
+		struct yd_t * ___data = array->data;\
+		struct yd_t * ___p, item;\
 		for (___p = (___data), (item) = *___p; ___p < &((___data)[array->len]); ___p++, (item) = *___p)\
 
 int ya_t_get(void *user_data, int argc, char *argv[], char *titles[])
 {
-	struct kdatad_t_array *array = user_data;
-	struct kdatad_t item;
+	struct yd_t_array *array = user_data;
+	struct yd_t item;
 
 	for (int i = 0; i < argc; ++i) {
 		char buff[128];
@@ -102,14 +102,14 @@ int ya_t_get(void *user_data, int argc, char *argv[], char *titles[])
 	}
 
 	//add item to array
-	kdatad_t_array_append(array, item);	
+	yd_t_array_append(array, item);	
 
 	return 0;
 }
 
 int transfer_callback(size_t size, void *user_data, char *error){
 	printf("kdata daemon: starting transfer_callback\n");
-	struct kdatad_data_t *data = user_data;
+	struct yd_data_t *data = user_data;
 	if (data == NULL) {
 		printf("kdata daemon: ERROR! Data is NULL\n");
 		return 1;
@@ -167,7 +167,7 @@ void update_from_cloud_with_data(
 			bool deleted
 		)
 {
-		struct kdatad_data_t data;
+		struct yd_data_t data;
 		{
 			strcpy(data.database_path, database_path);
 			strcpy(data.token, YD_token);
@@ -194,12 +194,12 @@ void update_from_cloud_with_data(
 		);	
 }
 
-void kdatad_update_data(struct kdatad_data_t * d)
+void yd_update_data(struct yd_data_t * d)
 {
 	int i, k;
 
 	//get list of updates 
-	struct kdatad_t_array * array = kdatad_t_array_new();	
+	struct yd_t_array * array = yd_t_array_new();	
 	char SQL[] = "SELECT * FROM kdata_updates";
 	sqlite_connect_execute_function(SQL, d->database_path, array, ya_t_get);
 
@@ -284,7 +284,7 @@ void kdatad_update_data(struct kdatad_data_t * d)
 				}
 			} else {
 				//update to Yandex Disk
-				struct kdatad_data_t * data = NEW(struct kdatad_data_t);
+				struct yd_data_t * data = NEW(struct yd_data_t);
 				{
 					strcpy(data->database_path, d->database_path);
 					strcpy(data->token, d->token);
@@ -317,15 +317,15 @@ void kdatad_update_data(struct kdatad_data_t * d)
 }
 
 void *
-kdatad_thread(void * data) 
+yd_thread(void * data) 
 {
-	struct kdatad_data_t *d = data; 
+	struct yd_data_t *d = data; 
 
 	while (1) {
 		if (d->callback)
 			if (d->callback(d->user_data, d->thread, "kdata daemon: updating data..."))
 				break;
-		kdatad_update_data(d);
+		yd_update_data(d);
 		sleep(SEC);
 	}
 
@@ -354,7 +354,7 @@ yd_daemon_init(
 	}	
 
 	//set params
-	struct kdatad_data_t *d = NEW(struct kdatad_data_t);
+	struct yd_data_t *d = NEW(struct yd_data_t);
 	strcpy(d->database_path, database_path);
 	strcpy(d->token, token);
 	d->callback = callback;
@@ -362,7 +362,7 @@ yd_daemon_init(
 	d->user_data = user_data;
 	
 	//create new thread
-	err = pthread_create(&tid, &attr, kdatad_thread, d);
+	err = pthread_create(&tid, &attr, yd_thread, d);
 	if (err) {
 		if (callback)
 			callback(user_data, 0, STR("kdata daemon: can't create thread: %d", err));
