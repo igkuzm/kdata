@@ -46,8 +46,6 @@ void kdata_table_init(kdata_table * t, const char * tablename, ...){
 	if (!t->columns)
 		return;
 	
-	int count = 0;
-	
 	//init va_args
 	va_list args;
 	va_start(args, tablename);
@@ -75,15 +73,14 @@ void kdata_table_init(kdata_table * t, const char * tablename, ...){
 		strcpy(c.key, key);
 		
 		//add column to array
-		t->columns[count] = c;
-		count++;	
+		t->columns[t->columns_count] = c;
+		t->columns_count++;	
 
 		//realloc columns array
-		t->columns = realloc(t->columns, (sizeof(kdata_column) + sizeof(kdata_column) * count));
+		t->columns = realloc(t->columns, (sizeof(kdata_column) + sizeof(kdata_column) * t->columns_count));
 		if (!t->columns)
 			return;
 	}
-	t->columns_count = count;
 }
 
 
