@@ -22,6 +22,7 @@ const char * kdata_parse_kerr(kerr err){
 		case KERR_NOERR: return "no error";
 		case KERR_ENOMEM: return "not enough memory";
 		case KERR_NOFILE: return "no such file or directory";
+		case KERR_NODATA: return "no data to send";
 		case KERR_DTYPE: return "error of data type";
 		case KERR_DONTUSEUUID: return "error key can't be 'uuid' - it is used";
 		case KERR_DONTUSEKDATAUPDATES: return "error table name can't be 'kdata_updates' - it is used";
@@ -327,30 +328,33 @@ kerr kdata_set_data_for_key(
 		const char * key
 		){
 
-	if (len) {
-		size_t size;
-		char *base64 = base64_encode(data, len, &size);
+	if (!len)
+		return KERR_NODATA;
 		
-		char *SQL = MALLOC(size + BUFSIZ);
-		
-		sprintf(SQL, "UPDATE rating SET %s = '%s', %s_size = %ld WHERE uuid = '%s'", key, base64, key, size, uuid);
-		sqlite_connect_execute(SQL, database);
-		free(base64);
-		free(SQL);
-	}	
+	//create base64 encoded data
+	size_t size;
+	char *base64 = base64_encode(data, len, &size);
 	
-	char * SQL = malloc(BUFSIZ + len);
+	//allocate memory
+	char * SQL = malloc(BUFSIZ + size);
 	if (!SQL)
 		return KERR_ENOMEM;	
 
+	//generete SQL string
 	sprintf(SQL, 
 			"UPDATE %s SET %s = '%s' WHERE uuid = '%s'",
-			tablename, key, text, uuid);
+			tablename, key, base64, uuid);
 	
 	int res = sqlite_connect_execute(SQL, filepath);
+	
+	//free memory
+	free(base64);
+	free(SQL);
+	
+	//return error
 	if (res)
 		return KERR_SQLITE_EXECUTE;
-
+	
 	//update kdata_update table
 	update_timestamp_for_uuid(filepath, tablename, uuid, 0);
 	
