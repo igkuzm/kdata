@@ -34,6 +34,7 @@ extern "C"{
 	*  type of data (integer, text, data)
 	*/
 	typedef enum DTYPE {
+		DTYPE_NONE,
 		DTYPE_INT,
 		DTYPE_TEXT,
 		DTYPE_DATA
@@ -91,7 +92,7 @@ extern "C"{
 		DTYPE type;
 		char key[128];
 		int int_value;
-		char * text_value;
+		char text_value[TEXTMAXSIZE];
 		void * data_value;
 		size_t data_len;
 	} kdata_d;	
