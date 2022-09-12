@@ -19,6 +19,8 @@ extern "C"{
 	#include <pthread.h>
 #endif
 
+#define SEC 300
+#define PATH "data"
 #define TEXTMAXSIZE 2048
 
 	/*! \enum DSERVICE
