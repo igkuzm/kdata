@@ -155,13 +155,13 @@ extern "C"{
 	//get int for key
 	void kdata_for_each(
 			const char * filepath, 
-			kdata_t * table,
+			kdata_s * table,
 			const char * predicate, 
 			void * user_data,
 			int (*callback)(
 				void * user_data, 
 				int argc,
-				kdata_t * values, 
+				kdata_d * values, 
 				kerr err)
 	);
 
