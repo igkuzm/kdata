@@ -428,7 +428,7 @@ int kdata_for_each_callback(
 		if (argv[i] != NULL) {
 			switch (col.type) {
 				case DTYPE_INT:  
-					value.int_value = atol(argv[i]); 
+					value.int_value = atoi(argv[i]); 
 					break;
 
 				case DTYPE_TEXT: 
