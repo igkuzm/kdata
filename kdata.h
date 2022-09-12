@@ -19,6 +19,8 @@ extern "C"{
 	#include <pthread.h>
 #endif
 
+	#define TEXTMAXSIZE 2048
+
 	/*! \enum DSERVICE
 	*
 	*  cloud data service (yandex_disk, google)
