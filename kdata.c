@@ -329,6 +329,7 @@ kerr kdata_set_data_for_key(
 		const char * key
 		){
 
+	//check data len
 	if (!len)
 		return KERR_NODATA;
 		
