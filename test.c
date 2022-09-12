@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 	kdata_structure_add(s, &my_table);
 
 	//init database
-	//kdata_init(DATABASE, s, DSERVICE_LOCAL, NULL, NULL, NULL);
+	kdata_init(DATABASE, s, DSERVICE_LOCAL, NULL, NULL, NULL);
 
 	//add new item
 	//char uuid[37];
