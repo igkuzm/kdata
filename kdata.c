@@ -185,9 +185,7 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 		void * user_data, int (*daemon_callback)(void * user_data, pthread_t thread, char * msg)
 		){
 	//ceate database
-	int res = sqlite_connect_create_database(filepath);
-	if (res) 
-		return KERR_SQLITE_CREATE;
+	sqlite_connect_create_database(filepath);
 
 	//create table to store update information
 	char SQL[] = "CREATE TABLE IF NOT EXISTS "
@@ -200,7 +198,7 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 				 "deleted INT"
 				 ")"
 	;
-	res = sqlite_connect_execute(SQL, filepath);
+	int res = sqlite_connect_execute(SQL, filepath);
 	if (res) 
 		return KERR_SQLITE_EXECUTE;	
 	
