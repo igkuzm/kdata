@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 	kdata_table my_table;
 	my_table_init(&my_table);
 	kdata_s * s = kdata_structure_init();
-	//kdata_structure_add(s, &my_table);
+	kdata_structure_add(s, &my_table);
 
 	//init database
 	//kdata_init(DATABASE, s, DSERVICE_LOCAL, NULL, NULL, NULL);
