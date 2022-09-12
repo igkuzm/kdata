@@ -11,6 +11,7 @@
 
 int main(int argc, char *argv[])
 {
+	printf("Starting KDATA test...\n");
 	
 	printf("press any key to exit\n");
 	getchar();
