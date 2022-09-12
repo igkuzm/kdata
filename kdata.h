@@ -93,8 +93,8 @@ extern "C"{
 
 	//add table to data strucuture
 	kerr kdata_structure_add(
-		kdata_s * strucuture, 
-		kdata_table table
+		kdata_s ** strucuture, 
+		kdata_table * table
 	);
 	
 	//free data structure
