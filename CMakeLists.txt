@@ -14,15 +14,17 @@ set (CMAKE_C_STANDARD 11)
 set(CYANDEXDISK_SOURCE_DIR ${CMAKE_SOURCE_DIR}/cYandexDisk)
 add_subdirectory(${CYANDEXDISK_SOURCE_DIR})
 
+add_subdirectory(SQLiteConnect)
+
 add_library(${TARGET} STATIC
 	kdata.c
 	yd_daemon.c
 	yd_update_from_cloud.c
 	yd_upload.c
 )
-target_link_libraries(${TARGET} curl)
+target_link_libraries(${TARGET} cYandexDisk SQLiteConnect)
 
-if(${BUILD_TEST})
-	add_executable(cYandexDisk_test test.c)
-	target_link_libraries(cYandexDisk_test ${TARGET})
+if(${KDATA_BUILD_TEST})
+	add_executable(${TARGET}_test test.c)
+	target_link_libraries(${TARGET}_test ${TARGET})
 endif()
