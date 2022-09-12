@@ -43,11 +43,13 @@ int main(int argc, char *argv[])
 	kdata_s * s = kdata_structure_init();
 	kdata_structure_add(s, &my_table);
 
-	while (s) {
-		kdata_table t = s->table;
-		printf("COLS: %d\n", t.columns_count);
-		s = s->next;
-	}
+	printf("TABLENAME: %s\n", s->table.tablename);
+
+	/*while (s) {*/
+		/*kdata_table t = s->table;*/
+		/*printf("COLS: %d\n", t.columns_count);*/
+		/*s = s->next;*/
+	/*}*/
 
 	//init database
 	/*kdata_init(DATABASE, s, DSERVICE_LOCAL, NULL, NULL, NULL);*/
