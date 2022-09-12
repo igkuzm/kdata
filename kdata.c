@@ -34,6 +34,15 @@ const char * kdata_parse_kerr(kerr err){
 	return "";
 }
 
+void kdata_d_init(kdata_d * value){
+	value->type = DTYPE_NONE;
+	value->key[0] = 0;
+	value->int_value = 0;
+	value->text_value[0] = 0;
+	value->data_value = NULL;
+	value->data_len = 0;
+} 
+
 kdata_s * kdata_structure_init(){
 	//allocate
 	kdata_s * s = malloc(sizeof(kdata_s));
@@ -328,15 +337,6 @@ kerr kdata_set_data_for_key(
 	
 	return KERR_NOERR;	
 }
-
-void kdata_d_init(kdata_d * value){
-	value->type = DTYPE_NONE;
-	value->key[0] = 0;
-	value->int_value = 0;
-	value->text_value[0] = 0;
-	value->data_value = NULL;
-	value->data_len = 0;
-} 
 
 struct kdata_for_each_t {
 	void * user_data;
