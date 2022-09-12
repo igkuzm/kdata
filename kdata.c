@@ -198,6 +198,8 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 			//add uuid key to table
 			strcat(SQL, "uuid TEXT )");
 
+			printf("SQL: %s\n", SQL);
+
 			int res = sqlite_connect_execute(SQL, filepath);
 			if (res) 
 				return KERR_SQLITE_EXECUTE;
