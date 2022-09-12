@@ -7,9 +7,12 @@
  */
 
 #include "kdata.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
+
 #include "yd.h"
 #include "SQLiteConnect/SQLiteConnect.h"
 #include "cYandexDisk/uuid4/uuid4.h"
@@ -31,6 +34,59 @@ const char * kdata_parse_kerr(kerr err){
 		case KERR_NULLSTRUCTURE: return "data structure is NULL";
 	}
 	return "";
+}
+
+kdata_table * kdata_table_new(const char * tablename, ...){
+	kdata_table * t = malloc(sizeof(kdata_table));
+	if (!t) 
+		return NULL; 
+
+	//set tablename
+	strncpy(t->tablename, tablename, sizeof(t->tablename) - 1);
+	t->tablename[sizeof(t->tablename) - 1] = 0;
+
+	//allocate columns array
+	t->columns = malloc(sizeof(kdata_column));
+	if (!t->columns)
+		return NULL;
+	
+	int count = 0;
+	
+	//init va_args
+	va_list args;
+	va_start(args, tablename);
+
+	DTYPE type = va_arg(args, DTYPE);
+	if (type == DTYPE_NONE)
+		return NULL;
+
+	char * key = va_arg(args, char *);
+	if (!key)
+		return NULL;
+
+	//iterate va_args
+	while (type != DTYPE_NONE && key != NULL){
+		type = va_arg(args, DTYPE);
+		key = va_arg(args, char *);
+		if (!key) 
+			break;
+		
+		//new column
+		kdata_column c = {.type = type};
+		strcpy(c.key, key);
+		
+		//add column to array
+		t->columns[count] = c;
+		count++;	
+
+		//realloc columns array
+		t->columns = realloc(t->columns, (sizeof(kdata_column) + sizeof(kdata_column) * count));
+		if (!t->columns)
+			return NULL;
+	}
+	t->columns_count = count;
+
+	return t;
 }
 
 void kdata_d_init(kdata_d * value){
