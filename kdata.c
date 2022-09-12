@@ -335,6 +335,8 @@ kerr kdata_set_data_for_key(
 	//create base64 encoded data
 	size_t size;
 	char *base64 = base64_encode(data, len, &size);
+	if (!size)
+		return KERR_BASE64;
 	
 	//allocate memory
 	char * SQL = malloc(BUFSIZ + size);
