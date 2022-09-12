@@ -108,25 +108,27 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 	
 	//create table for each in strucuture
 	while (s) {
-		kdata_t * t = s->table;
-		if (t){
+		if (s->columns_count > 0){
 			char SQL[BUFSIZ] = "CREATE TABLE IF NOT EXISTS ";
 			strcat(SQL, s->tablename);
 			strcat(SQL, " ( ");
-			//for each data type
-			while(t) {
-				char * type;
-				switch (t->type) {
-					case DTYPE_INT : type="INT" ; break;
-					case DTYPE_TEXT: type="TEXT"; break;
-					case DTYPE_DATA: type="BLOB"; break;
-				}
+		
+			int i;
+			for (int i = 0; i < s->columns_count; i++) {
+				kdata_column t = s->columns[i];
 
-				char str[256];
-				sprintf(str, "%s %s, ", t->key, type);
-				strcat(SQL, str);
-				
-				t = t->next;
+				if (strcmp("uuid", t.key)) { //check if key is not 'uuid'
+					char * type;
+					switch (t.type) {
+						case DTYPE_INT : type="INT" ; break;
+						case DTYPE_TEXT: type="TEXT"; break;
+						case DTYPE_DATA: type="BLOB"; break;
+					}
+
+					char str[256];
+					sprintf(str, "%s %s, ", t.key, type);
+					strcat(SQL, str);
+				}
 			}
 
 			//add uuid key to table
@@ -137,6 +139,7 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 				return KERR_SQLITE_EXECUTE;
 		}
 		
+		//iterate database structure
 		s = s->next;
 	}
 
