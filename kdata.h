@@ -81,6 +81,9 @@ extern "C"{
 			const char * tablename, 
 			...                     //type, key, ... NULL
 	);
+
+	//free table
+	void kdata_table_free(kdata_table * table);
 	
 	//database structure
 	typedef struct kdata_s {
