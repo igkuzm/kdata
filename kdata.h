@@ -176,7 +176,7 @@ extern "C"{
 	//iterate all rows for column
 	void kdata_for_each(
 			const char * filepath, 
-			const kdata_s * table,
+			const kdata_table * table,
 			const char * predicate, 
 			void * user_data,
 			int (*callback)(
