@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 	kdata_set_int_for_key(DATABASE, my_table.tablename, uuid, time(NULL), "DATE");
 
 	//get data from database
-	kdata_for_each(DATABASE, my_table.tablename, NULL, NULL, foreach_callback);
+	kdata_for_each(DATABASE, &my_table, NULL, NULL, foreach_callback);
 	
 	printf("Done. press any key to exit\n");
 	getchar();
