@@ -76,6 +76,7 @@ void kdata_table_init(kdata_table * t, const char * tablename, ...){
 		
 		//add column to array
 		t->columns[count++] = c;
+		t->columns_count++;
 
 		//realloc columns array
 		t->columns = realloc(t->columns, (sizeof(kdata_column) + sizeof(kdata_column) * count));
