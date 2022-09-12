@@ -125,6 +125,7 @@ kerr kdata_structure_add(
 
 	n->next = s;	
 	n->table = t;
+	printf("TABLENAME: %s\n", t.tablename);
 	
 	s = n; //change pointer to new
 
