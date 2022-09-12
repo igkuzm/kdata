@@ -13,6 +13,8 @@
 #include "yd.h"
 #include "SQLiteConnect/SQLiteConnect.h"
 #include "cYandexDisk/uuid4/uuid4.h"
+#include "base64.h"
+
 
 
 const char * kdata_parse_kerr(kerr err){
@@ -302,6 +304,45 @@ kerr kdata_set_text_for_key(
 		){
 	
 	char SQL[TEXTMAXSIZE];
+	sprintf(SQL, 
+			"UPDATE %s SET %s = '%s' WHERE uuid = '%s'",
+			tablename, key, text, uuid);
+	
+	int res = sqlite_connect_execute(SQL, filepath);
+	if (res)
+		return KERR_SQLITE_EXECUTE;
+
+	//update kdata_update table
+	update_timestamp_for_uuid(filepath, tablename, uuid, 0);
+	
+	return KERR_NOERR;	
+}
+
+kerr kdata_set_data_for_key(
+		const char * filepath, 
+		const char * tablename, 
+		const char * uuid, 
+		void * data, 
+		size_t len, 
+		const char * key
+		){
+
+	if (len) {
+		size_t size;
+		char *base64 = base64_encode(data, len, &size);
+		
+		char *SQL = MALLOC(size + BUFSIZ);
+		
+		sprintf(SQL, "UPDATE rating SET %s = '%s', %s_size = %ld WHERE uuid = '%s'", key, base64, key, size, uuid);
+		sqlite_connect_execute(SQL, database);
+		free(base64);
+		free(SQL);
+	}	
+	
+	char * SQL = malloc(BUFSIZ + len);
+	if (!SQL)
+		return KERR_ENOMEM;	
+
 	sprintf(SQL, 
 			"UPDATE %s SET %s = '%s' WHERE uuid = '%s'",
 			tablename, key, text, uuid);
