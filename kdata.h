@@ -74,7 +74,6 @@ extern "C"{
 		char tablename[128];
 		int columns_count;
 		kdata_column * columns;
-		struct kdata_s * next;
 	} kdata_table;
 	
 	//new table with columns 
