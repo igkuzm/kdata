@@ -180,7 +180,6 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 			int i;
 			for (i = 0; i < t.columns_count; i++) {
 				kdata_column c = t.columns[i];
-				printf("COL NAME: %s\n", c.key);
 
 				if (strcmp("uuid", c.key)) { //check if key is not 'uuid'
 					char * type;
