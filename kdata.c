@@ -108,43 +108,6 @@ kdata_s * kdata_structure_init(){
 	return s;	
 }
 
-kerr kdata_structure_add_table(
-		kdata_s * s,
-		const char * tablename,
-		int columns_count,
-		kdata_column * columns		
-		)
-{
-	if (!s) //ckeck if strucuture null
-		return KERR_NULLSTRUCTURE;
-
-	if (!strcmp(tablename, "kdata_updates")) //dont use name 'kdata_updates' for key
-		return KERR_DONTUSEKDATAUPDATES;
-	
-	kdata_s * n = kdata_structure_init();
-	if (!n) //ckeck if null
-		return KERR_ENOMEM;
-
-	n->next = s;
-
-	kdata_table t;		
-
-	t.columns_count = columns_count;
-	//copy columns
-	int i;
-	for (int i = 0; i < columns_count; i++) {
-		t.columns[i] = columns[i];	
-	}
-	strncpy(t.tablename, tablename, sizeof(t.tablename) - 1); 
-	t.tablename[sizeof(t.tablename) - 1] = 0;
-
-	n->table = t;
-
-	s = n; //change pointer to new
-
-	return KERR_NOERR;	
-}
-
 kerr kdata_structure_add(
 		kdata_s * s, 
 		kdata_table * t		
