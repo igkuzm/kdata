@@ -34,50 +34,6 @@ const char * kdata_parse_kerr(kerr err){
 	return "";
 }
 
-kdata_t * kdata_table_init(){
-	//allocate memory
-	kdata_t * s = malloc(sizeof(kdata_t));
-	if (!s) 
-		return NULL;
-	s->next = NULL;
-	return s;
-}
-
-kerr kdata_table_add(kdata_t * t, DTYPE type, const char * key){
-	if (!t) //ckeck if strucuture null
-		return KERR_NULLSTRUCTURE;
-
-	if (!strcmp(key, "uuid")) //dont use name 'uuid' for key
-		return KERR_DONTUSEUUID;
-
-	//create new table
-	kdata_t * n = kdata_table_init();
-	if (!n) 
-		return KERR_ENOMEM;
-
-	n->next = t;
-	n->type = type;
-	strncpy(n->key, key, sizeof(n->key) - 1); 
-	n->key[sizeof(n->key) - 1] = 0;
-
-	t = n; //set pointer of data to new table
-
-	return KERR_NOERR;
-}
-
-kerr kdata_table_free(kdata_t * t){
-	if (!t) //ckeck if strucuture null
-		return KERR_NULLSTRUCTURE;
-	
-	while (t) {
-		kdata_t * ptr = t;
-		t = ptr->next;
-		free(ptr);
-	}
-	
-	return KERR_NOERR;
-}
-
 kdata_s * kdata_structure_init(){
 	//allocate
 	kdata_s * s = malloc(sizeof(kdata_s));
@@ -87,11 +43,11 @@ kdata_s * kdata_structure_init(){
 	return s;	
 }
 
-kerr kdata_structure_add(kdata_s * s, kdata_t * table, const char * tablename){
-	if (!s) //ckeck if strucuture null
+kerr kdata_structure_add(kdata_s * s, kdata_s * table){
+	if (!s || !table) //ckeck if strucuture null
 		return KERR_NULLSTRUCTURE;
 
-	if (!strcmp(tablename, "kdata_updates")) //dont use name 'kdata_updates' for key
+	if (!strcmp(table->tablename, "kdata_updates")) //dont use name 'kdata_updates' for key
 		return KERR_DONTUSEKDATAUPDATES;
 	
 	kdata_s * n = kdata_structure_init();
@@ -99,8 +55,13 @@ kerr kdata_structure_add(kdata_s * s, kdata_t * table, const char * tablename){
 		return KERR_ENOMEM;
 
 	n->next = s;
-	n->table = table;
-	strncpy(n->tablename, tablename, sizeof(n->tablename) - 1); 
+	n->columns_count = table->columns_count;
+	//copy columns
+	int i;
+	for (int i = 0; i < n->columns_count; i++) {
+		n->columns[i] = table->columns[i];	
+	}
+	strncpy(n->tablename, table->tablename, sizeof(n->tablename) - 1); 
 	n->tablename[sizeof(n->tablename) - 1] = 0;
 
 	s = n; //change pointer to new
@@ -365,6 +326,147 @@ kerr kdata_set_data_for_key(
 	return KERR_NOERR;	
 }
 
+struct kdata_for_each_t {
+	void *user_data;
+	int (*callback) (void * user_data, int argc, kdata_t * argv, kerr err);
+};
+
+int 
+kdata_for_each_callback(
+		void *user_data, 
+		int argc, 
+		char *argv[], 
+		char *titles[]
+		)
+{
+	struct kdata_for_each_t *t = user_data;
+
+	//allocate array of values
+	kdata_t * a = malloc(sizeof(kdata_t) * argc);
+	if (!a){
+		if (t->callback)
+			t->callback(t->user_data, 0, NULL, KERR_ENOMEM);
+		return 0;
+	}
+
+	for (int i = 0; i < argc; ++i) {
+		char buff[128];
+		if (!argv[i]) buff[0] = '\0'; //no seg falt on null
+		else {
+			strncpy(buff, argv[i], 127);
+			buff[127] = '\0';
+		}
+
+		switch (i) {
+			case 0:  item.id = atoi(buff)                ; break;
+			case 1:  strcpy(item.uuid, buff)             ; break;
+			case 2:  item.date = atoi(buff)              ; break;
+			case 3:  strcpy(item.name, buff)             ; break;
+			case 4:  strcpy(item.latin_name, buff)       ; break;
+			case 5:  strcpy(item.region, buff)           ; break;
+			case 6:  strcpy(item.kategory, buff)         ; break;
+			case 7:  strcpy(item.method, buff)           ; break;
+			case 8:  strcpy(item.company, buff)          ; break;
+
+			case 9:  strcpy(item.color, buff)            ; break;
+			case 10: strcpy(item.clearness, buff)        ; break;
+			case 11: strcpy(item.intensity, buff)        ; break;
+			case 12: strcpy(item.transparence, buff)     ; break;
+			case 13: strcpy(item.fluidity, buff)         ; break;
+			case 14: strcpy(item.ductility, buff)        ; break;
+			case 15: strcpy(item.volatility, buff)       ; break;
+			case 16: strcpy(item.integrality, buff)      ; break;
+
+			case 17: item.olfactory = atoi(buff)         ; break;
+
+			case 18: strcpy(item.olfactory_fist, buff)   ; break;
+			case 19: strcpy(item.olfactory_second, buff) ; break;
+			case 20: strcpy(item.olfactory_third, buff)  ; break;
+			case 21: strcpy(item.olfactory_last, buff)   ; break;
+
+			case 22: strcpy(item.sin_color, buff)        ; break;
+			case 23: strcpy(item.sin_sound, buff)        ; break;
+			case 24: strcpy(item.sin_form, buff)         ; break;
+			case 25: strcpy(item.sin_simbol, buff)       ; break;
+
+			case 26: item.rating_phis = atoi(buff)       ; break;
+			case 27: item.rating_aroma = atoi(buff)      ; break;
+			case 28: item.rating_energy = atoi(buff)     ; break;
+
+			case 29: strcpy(item.rating, buff)           ; break;
+
+			//parse image
+			case 30: 
+				{
+					item.image0_len = 0;
+					item.image0 = NULL;
+					if (argv[i] != NULL && argv[i+1] != NULL) {
+						size_t len = atoi(argv[i+1]);
+						size_t size;
+						unsigned char * data = base64_decode(argv[i], len, &size);
+						item.image0_len = size;
+						item.image0 = data;
+					}
+				} 
+				break;
+
+			case 32: 
+				{
+					item.image1_len = 0;
+					item.image1 = NULL;
+					if (argv[i] != NULL && argv[i+1] != NULL) {
+						size_t len = atoi(argv[i+1]);
+						size_t size;
+						unsigned char * data = base64_decode(argv[i], len, &size);
+						item.image1_len = size;
+						item.image1 = data;
+					}
+				} 
+				break;				
+
+			default:                                       break;
+		}
+	}
+
+	if (t->callback)
+		t->callback(&item, t->user_data, NULL);
+
+	return 0;
+}
+
+void
+ya_rating_for_each(
+		const char * database,
+		const char * predicate,
+		void * user_data, 
+		int (*callback) (
+			struct ya_rating_t *item, 
+			void *user_data, 
+			char *error
+			)
+		)
+{
+	struct ya_rating_for_each_t t;
+	t.user_data = user_data;
+	t.callback = callback;
+
+	char SQL[BUFSIZ];
+	if (predicate) {
+		sprintf(SQL, "SELECT * FROM rating WHERE %s", predicate);	
+	} else {
+	   	sprintf(SQL, "SELECT * FROM rating");
+	}
+	sqlite_connect_execute_function(SQL, database, &t, ya_rating_for_each_callback);
+};
+
+
+
+
+
+
+
+
+
 
 void
 kdata_daemon_init(
@@ -386,3 +488,5 @@ kdata_daemon_init(
 		return;
 	}
 }
+
+
