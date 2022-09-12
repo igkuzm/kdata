@@ -43,13 +43,18 @@ int main(int argc, char *argv[])
 	kdata_s * s = kdata_structure_init();
 	kdata_structure_add(s, &my_table);
 
+	while (s) {
+		kdata_table t = s->table;
+		printf("COLS: %d\n", t.columns_count);
+	}
+
 	//init database
-	kdata_init(DATABASE, s, DSERVICE_LOCAL, NULL, NULL, NULL);
+	/*kdata_init(DATABASE, s, DSERVICE_LOCAL, NULL, NULL, NULL);*/
 
 	//add new item
-	char uuid[37];
-	kdata_add(DATABASE, my_table.tablename, &uuid, add_callback);
-	printf("UUID: %s\n", uuid);
+	/*char uuid[37];*/
+	/*kdata_add(DATABASE, my_table.tablename, &uuid, add_callback);*/
+	/*printf("UUID: %s\n", uuid);*/
 	
 	printf("Done. press any key to exit\n");
 	getchar();
