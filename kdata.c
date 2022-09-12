@@ -335,6 +335,15 @@ struct kdata_for_each_t {
 	int (*callback) (void * user_data, int argc, kdata_d * argv, kerr err);
 };
 
+void kdata_d_value_init(kdata_d * value){
+	value->type = DTYPE_NONE;
+	value->key[0] = 0;
+	value->int_value = 0;
+	value->text_value[0] = 0;
+	value->data_value = NULL;
+	value->data_len = 0;
+} 
+
 int 
 kdata_for_each_callback(
 		void *user_data, 
@@ -354,40 +363,45 @@ kdata_for_each_callback(
 	}
 
 	for (int i = 0; i < argc; ++i) {
-		char buff[TEXTMAXSIZE];
-		if (!argv[i]) buff[0] = '\0'; //no seg falt on null
-		else {
-			strncpy(buff, argv[i], TEXTMAXSIZE - 1);
-			buff[TEXTMAXSIZE - 1] = '\0';
-		}
 		
 		kdata_d value;
+		kdata_d_value_init(&value);
+		if (titles[i])
+			strcpy(value.key, titles[i]);
+
 		kdata_column col = t->table->columns[i];
 
-		switch (col.type) {
-			case DTYPE_INT:  value.int_value = atoi(buff)   ; break;
-			case DTYPE_TEXT: strcpy(value.text_value, buff) ; break;
-
-			case DTYPE_DATA:  				
-				{
-					value.data_len = 0;
-					value.data_value = NULL;
-					if (argv[i] != NULL) {
+		if (argv[i] != NULL) {
+			switch (col.type) {
+				case DTYPE_INT:  
+					value.int_value = atoi(argv[i]); 
+					break;
+				case DTYPE_TEXT: 
+					strncpy(value.text_value, argv[i], TEXTMAXSIZE - 1);
+					value.text_value[TEXTMAXSIZE - 1] = '\0';						
+					break;
+				case DTYPE_DATA:  				
+					{
 						size_t len = strlen(argv[i]);
 						size_t size;
 						unsigned char * data = base64_decode(argv[i], len, &size);
 						value.data_len = size;
 						value.data_value = data;
 					}
-				} 
-				break;
+					break;
 
-			default:                                       break;
+				default:
+					break;
+			}
 		}
+
+		a[i] = value;
 	}
 
 	if (t->callback)
-		t->callback(&item, t->user_data, NULL);
+		t->callback(t->user_data, argc, a, KERR_NOERR);
+
+	free(a);
 
 	return 0;
 }
