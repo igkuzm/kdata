@@ -84,7 +84,7 @@ extern "C"{
 	
 	//database structure
 	typedef struct kdata_s {
-		struct kdata_table * table;
+		struct kdata_table table;
 		struct kdata_s * next;
 	} kdata_s;	
 
