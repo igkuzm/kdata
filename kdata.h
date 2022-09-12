@@ -169,6 +169,7 @@ extern "C"{
 	);
 
 
+	//init cloud service
 	void kdata_daemon_init(
 			const char * filepath,
 			DSERVICE service,
@@ -180,6 +181,7 @@ extern "C"{
 				char * msg)
 	);
 
+	//init yandex disk cloud service
 	void yd_daemon_init(
 				const char * filepath,
 				const char * token,
