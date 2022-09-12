@@ -28,8 +28,8 @@ int add_callback(void *user_data, char *uuid, kerr err){
 	char **_uuid = user_data;
 	if (err)
 		printf("%s\n", kdata_parse_kerr(err));
-	else
-		strcpy(*_uuid, uuid);
+	//else
+		//strcpy(*_uuid, uuid);
 	return 0;
 }
 
