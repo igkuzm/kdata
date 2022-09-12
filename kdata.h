@@ -151,7 +151,7 @@ extern "C"{
 			const char * tablename, 
 			const char * uuid, 
 			void * data, 
-			unsigned long len, 
+			size_t len, 
 			const char * key
 	);
 
