@@ -110,13 +110,13 @@ kdata_s * kdata_structure_init(){
 
 kerr kdata_structure_add(
 		kdata_s * s, 
-		kdata_table * t		
+		kdata_table t		
 		)
 {
 	if (!s) //ckeck if strucuture null
 		return KERR_NULLSTRUCTURE;
 
-	if (!strcmp(t->tablename, "kdata_updates")) //dont use name 'kdata_updates' for key
+	if (!strcmp(t.tablename, "kdata_updates")) //dont use name 'kdata_updates' for key
 		return KERR_DONTUSEKDATAUPDATES;
 
 	kdata_s * n = kdata_structure_init();
@@ -124,7 +124,7 @@ kerr kdata_structure_add(
 		return KERR_ENOMEM;
 
 	n->next = s;	
-	n->table = *t;
+	n->table = t;
 	
 	s = n; //change pointer to new
 
