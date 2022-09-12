@@ -62,6 +62,9 @@ void kdata_table_init(kdata_table * t, const char * tablename, ...){
 
 	//iterate va_args
 	while (type != DTYPE_NONE && key != NULL){
+		printf("VA_ARG TYPE: %d\n", type);
+		printf("VA_ARG KEY: %s\n", key);
+		
 		type = va_arg(args, DTYPE);
 		key = va_arg(args, char *);
 		if (!key) 
