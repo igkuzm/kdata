@@ -126,9 +126,7 @@ kerr kdata_structure_add(
 		return KERR_ENOMEM;
 
 	n->next = ptr;	
-	n->table.columns_count = t->columns_count;
-	strcpy(n->table.tablename, t->tablename);
-	n->table.columns = t->columns;
+	n->table = *t;
 	
 	*s = n; //change pointer to new
 
