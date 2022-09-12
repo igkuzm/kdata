@@ -36,11 +36,7 @@ const char * kdata_parse_kerr(kerr err){
 	return "";
 }
 
-kdata_table * kdata_table_new(const char * tablename, ...){
-	kdata_table * t = malloc(sizeof(kdata_table));
-	if (!t) 
-		return NULL; 
-
+void kdata_table_init(kdata_table * t, const char * tablename, ...){
 	//set tablename
 	strncpy(t->tablename, tablename, sizeof(t->tablename) - 1);
 	t->tablename[sizeof(t->tablename) - 1] = 0;
@@ -48,7 +44,7 @@ kdata_table * kdata_table_new(const char * tablename, ...){
 	//allocate columns array
 	t->columns = malloc(sizeof(kdata_column));
 	if (!t->columns)
-		return NULL;
+		return;
 	
 	int count = 0;
 	
@@ -58,11 +54,11 @@ kdata_table * kdata_table_new(const char * tablename, ...){
 
 	DTYPE type = va_arg(args, DTYPE);
 	if (type == DTYPE_NONE)
-		return NULL;
+		return;
 
 	char * key = va_arg(args, char *);
 	if (!key)
-		return NULL;
+		return;
 
 	//iterate va_args
 	while (type != DTYPE_NONE && key != NULL){
@@ -82,11 +78,14 @@ kdata_table * kdata_table_new(const char * tablename, ...){
 		//realloc columns array
 		t->columns = realloc(t->columns, (sizeof(kdata_column) + sizeof(kdata_column) * count));
 		if (!t->columns)
-			return NULL;
+			return;
 	}
 	t->columns_count = count;
+}
 
-	return t;
+
+void kdata_table_free(kdata_table * t) {
+	free(t->columns);
 }
 
 void kdata_d_init(kdata_d * value){
@@ -159,6 +158,7 @@ kerr kdata_structure_free(kdata_s * s){
 	while (s) {
 		kdata_s * ptr = s;
 		s = ptr->next;
+		kdata_table_free(&ptr->table);
 		free(ptr);
 	}
 	
