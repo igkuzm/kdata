@@ -104,7 +104,7 @@ extern "C"{
 	typedef struct kdata_d {
 		DTYPE type;
 		char key[128];
-		int int_value;
+		long int_value;
 		char text_value[TEXTMAXSIZE];
 		void * data_value;
 		size_t data_len;
