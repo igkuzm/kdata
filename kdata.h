@@ -2,7 +2,7 @@
  * File              : kdata.h
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.09.2022
- * Last Modified Date: 12.09.2022
+ * Last Modified Date: 14.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -14,10 +14,7 @@ extern "C"{
 #endif
 
 	#include <stdlib.h>
-
-#ifndef __ANDROID__
 	#include <pthread.h>
-#endif
 
 #define SEC 300
 #define PATH "data"
