@@ -14,7 +14,7 @@ set (CMAKE_C_STANDARD 11)
 set(CYANDEXDISK_SOURCE_DIR ${CMAKE_SOURCE_DIR}/cYandexDisk)
 add_subdirectory(${CYANDEXDISK_SOURCE_DIR})
 
-add_subdirectory(SQLiteConnect)
+add_subdirectory(${CMAKE_SOURCE_DIR}/SQLiteConnect)
 
 add_library(${TARGET} STATIC
 	kdata.c
