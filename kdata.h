@@ -182,6 +182,7 @@ extern "C"{
 			const char * filepath,
 			DSERVICE service,
 			const char * token,
+			kdata_s * structure, 
 			void * user_data,
 			int (*callback)(
 				void * user_data, 
