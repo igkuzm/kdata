@@ -7,7 +7,6 @@
  */
 
 #include "yd.h"
-#include "cYandexDisk/cJSON.h"
 #include "cYandexDisk/cYandexDisk.h"
 #include "SQLiteConnect/SQLiteConnect.h"
 #include <stdio.h>
