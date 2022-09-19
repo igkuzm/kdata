@@ -30,6 +30,7 @@
 struct yd_data_t{
 	char database_path[BUFSIZ];
 	char token[128];
+	kdata_s * s; 
 	void * user_data;
 	pthread_t thread;
 	int (*callback)(void * user_data, pthread_t thread, char * msg);
@@ -338,6 +339,7 @@ void
 yd_daemon_init(
 			const char * database_path,
 			const char * token,
+			kdata_s * s, 
 			void * user_data,
 			int (*callback)(void * user_data, pthread_t thread, char * msg)
 		)
