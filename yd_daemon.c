@@ -205,11 +205,12 @@ void yd_update_data(struct yd_data_t * d)
 	sqlite_connect_execute_function(SQL, d->database_path, array, ya_t_get);
 
 	//update from cloud
-	char * tables[] = {"rating", "images"};
-	for (k = 0; k < 1; ++k) {
+	kdata_s * ptr = d->s;
+	while (ptr) {
+		kdata_table table = ptr->table;
 		struct uuid_list *list = NEW(struct uuid_list); list->prev = NULL;
 		char path[BUFSIZ];
-		sprintf(path, "app:/%s/%s", PATH, tables[k]);
+		sprintf(path, "app:/%s/%s", PATH, table.tablename);
 
 		//get list of uuid
 		c_yandex_disk_ls(
@@ -234,7 +235,7 @@ void yd_update_data(struct yd_data_t * d)
 							d->thread,
 							d->callback,
 							t.uuid,
-							tables[k],
+							table.tablename,
 							t.timestamp,
 							t.deleted
 						);
@@ -250,7 +251,7 @@ void yd_update_data(struct yd_data_t * d)
 					d->thread,
 					d->callback,
 					uuid,
-					tables[k],
+					table.tablename,
 					0,
 					0
 				);
@@ -261,6 +262,9 @@ void yd_update_data(struct yd_data_t * d)
 			free(ptr);
 		}
 		free(list);
+		
+		//iterate database structure
+		ptr = ptr->next;
 	}
 
 	//upload to cloud
@@ -359,6 +363,7 @@ yd_daemon_init(
 	struct yd_data_t *d = NEW(struct yd_data_t);
 	strcpy(d->database_path, database_path);
 	strcpy(d->token, token);
+	d->s = s;
 	d->callback = callback;
 	d->thread = tid;
 	d->user_data = user_data;
