@@ -163,6 +163,7 @@ int sqlite2yandexdisk_upload_callback(void *data, int argc, char **argv, char **
 	int i;
 	for (i = 0; i < argc; ++i) {
 		if (argv[i]){
+			printf("sqlite2yandexdisk_upload: upload data for value: %s\n", titles[i]);
 			upload_value_for_key(
 				d->token,
 				d->path,
