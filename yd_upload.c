@@ -205,6 +205,7 @@ sqlite2yandexdisk_upload(
 		.path = path,
 		.database = database,
 		.tablename = tablename,
+		.uuid = uuid,
 		.timestamp = timestamp,
 		.user_data = user_data,
 		.callback = callback
