@@ -2,7 +2,7 @@
  * File              : test.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 12.09.2022
- * Last Modified Date: 12.09.2022
+ * Last Modified Date: 19.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -14,6 +14,7 @@
 
 
 #define DATABASE "my_data.db"
+#define TOKEN "y0_AgAAAABVlmyCAAfIlAAAAADPRKwbrJpNof9zQJaJDvp3mebK5NjrZWM"
 
 //table
 void my_table_init(kdata_table * table) {
@@ -71,7 +72,7 @@ int main(int argc, char *argv[])
 	kdata_structure_add(&s, &my_table);
 
 	//init database
-	kdata_init(DATABASE, s, DSERVICE_LOCAL, NULL, NULL, NULL);
+	kdata_init(DATABASE, s, DSERVICE_YANDEX, TOKEN, NULL, NULL);
 
 	//add new item
 	char uuid[37];
