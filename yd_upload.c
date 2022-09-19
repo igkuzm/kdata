@@ -201,9 +201,13 @@ sqlite2yandexdisk_upload(
 {
 	//get data from table and upload data 
 	struct sqlite2yandexdisk_upload_d d = {
-		.callback = callback,
+		.token = token,
+		.path = path,
+		.database = database,
+		.tablename = tablename,
+		.timestamp = timestamp,
 		.user_data = user_data,
-		.timestamp = timestamp
+		.callback = callback
 	};	
 
 	char SQL[BUFSIZ];
