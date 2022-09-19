@@ -67,10 +67,8 @@ int upload_value_for_key_callback(size_t size, void *user_data, char *error){
 	struct upload_value_for_key_t * t = user_data;
 	t->callback(size, t->user_data, error);
 
-	if (!error) {
-		free(t->value);
-		free(t);
-	}
+	free(t->value);
+	free(t);
 
 	return 0;
 }
@@ -195,12 +193,12 @@ sqlite2yandexdisk_upload(
 {
 	//get data from table and upload data 
 	struct sqlite2yandexdisk_upload_d d = {
-		.callback = callback;
-		.user_data = user_data;
-		.timestamp = timestamp;
+		.callback = callback,
+		.user_data = user_data,
+		.timestamp = timestamp
 	};	
 
 	char SQL[BUFSIZ];
 	sprintf(SQL, "SELECT * FROM %s WHERE uuid ='%s'", tablename, uuid);
-	sqlite_connect_execute_function(SQL, database, json, sqlite2yandexdisk_upload_callback);
+	sqlite_connect_execute_function(SQL, database, &d, sqlite2yandexdisk_upload_callback);
 }
