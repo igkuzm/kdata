@@ -118,7 +118,14 @@ upload_value_for_key(
 			callback(0, user_data, "Can't allocate memory for upload_value_for_key_t");
 		return;
 	}
-	t->value = value;
+	t->value = malloc(size);
+	if (t->value == NULL){
+		perror("value malloc");
+		if (callback)
+			callback(0, user_data, "Can't allocate memory for value");
+		return;		
+	}
+	memcpy(t->value, value, size);
 	t->user_data = user_data;
 	t->callback = callback;
 
