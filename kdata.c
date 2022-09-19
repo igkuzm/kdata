@@ -170,8 +170,9 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 		return KERR_SQLITE_EXECUTE;	
 	
 	//create table for each in strucuture
-	while (s) {
-		kdata_table t = s->table;
+	kdata_s * ptr = s;
+	while (ptr) {
+		kdata_table t = ptr->table;
 		if (t.columns_count > 0){
 			char SQL[BUFSIZ] = "CREATE TABLE IF NOT EXISTS ";
 			strcat(SQL, t.tablename);
@@ -205,11 +206,11 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 		}
 		
 		//iterate database structure
-		s = s->next;
+		ptr = ptr->next;
 	}
 
 	//start daemon
-	kdata_daemon_init(filepath, service, token, user_data, daemon_callback);	
+	kdata_daemon_init(filepath, service, token, s, user_data, daemon_callback);	
 	
 	return KERR_NOERR;	
 }
