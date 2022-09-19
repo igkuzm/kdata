@@ -105,6 +105,14 @@ upload_value_for_key(
 		perror(error);
 	}	
 
+	//create directory for timestamp
+	sprintf(rowpath, "%s/%ld", rowpath, timestamp);
+	error = NULL;
+	c_yandex_disk_mkdir(token, rowpath, &error);
+	if (error) {
+		perror(error);
+	}	
+
 	//upload data for key
 	struct upload_value_for_key_t * t = malloc(sizeof(struct upload_value_for_key_t));
 	if (t==NULL){
@@ -134,34 +142,24 @@ upload_value_for_key(
 }
 
 
-int sqlite2json_callback(void *data, int argc, char **argv, char **titles) {
-	//create json
-	cJSON * json = data;
-
-	//for each column
-	int i;
-	for (i = 0; i < argc; ++i) {
-		char * title = titles[i];
-		char * value = argv[i]; if (value == NULL) value = "";
-
-		cJSON_AddItemToObject(json, title, cJSON_CreateString(value));
-	}
-
-	return 1; //stop execution
-}
-
 struct sqlite2yandexdisk_upload_d{
 	int (*callback)(size_t size, void *user_data, char *error);			
 	void *user_data;
+	const char * token;
+	const char * path,
+	const char * database,
+	const char * tablename,
+	const char * uuid,		
 	time_t timestamp;
 };
 
 int sqlite2yandexdisk_upload_callback(void *data, int argc, char **argv, char **titles) {
 	struct sqlite2yandexdisk_upload_d *d = data;
+	upload_value_for_key(
+		d->token,
 
-	char timestamp_srt[16]; sprintf(key, "%ld", d->timestamp); //timestamp as string
+	);
 	
-
 
 	return 0;
 }
