@@ -140,6 +140,7 @@ struct filelist_callback_t{
 
 int filelist_callback(c_yd_file_t *file, void *user_data, char *error){
 	printf("kdata daemon: starting filelist_callback\n");
+	printf("file name: %s, error: %s\n", file->name, error);
 	struct filelist_callback_t * t = user_data;
 	if (error){
 		if(t->callback)
