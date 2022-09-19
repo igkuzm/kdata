@@ -24,6 +24,7 @@ struct update_from_cloud_t {
 	char tablename[256];
 	char uuid[37];
 	char database[BUFSIZ];
+	char column_name[256];
 };
 
 struct columns_list_t {
@@ -43,107 +44,47 @@ struct columns_list_t * new_columns_list(){
 	return list;
 }
 
-int columns_list_callback(void *user_data, int argc, char **argv, char **titles){
-	struct columns_list_t ** list = user_data;
-	int i;
-	for (i = 0; i < argc; ++i) {
-		char * column_name = titles[i];
-		if (column_name == NULL)
-			column_name = "";
-
-		if (strcmp(column_name, "uuid") != 0){ //don't add uuid column
-			//new list node
-			struct columns_list_t * new_list = new_columns_list();
-			new_list->prev = *list;
-			strncpy(new_list->column_name, column_name, 255);
-			new_list->column_name[255] = 0;
-			*list = new_list;
-		}
-	}
-
-	return 1; //stop execution
-}
-
 int update_from_cloud_callback(size_t size, void *data, void *user_data, char *error){			
 	struct update_from_cloud_t *t = user_data;
 	
-	if (error)
+	if (error){
 		if(t->callback)
 			t->callback(0, t->user_data, STR("%s", error));
-	
+		return 0;
+	}
 
 	if (size){
-		const char *err;
-		cJSON * json = cJSON_ParseWithLengthOpts((const char *)data, size, &err, 0);
-		
-		if (err)
+		char * SQL  = malloc(BUFSIZ + size);	
+		if (SQL == NULL){
+			perror("SQL malloc");
 			if(t->callback)
-				t->callback(0, t->user_data, STR("cJSON_Parse error: %s", err));
-		
-		//cJSON * json = cJSON_Parse(data);
-
-		//check json
-		if (!json || !cJSON_IsObject(json)){
-			if (t->callback)
-				t->callback(0, t->user_data, STR("can't get json from timestamp: %ld for %s: %s", t->timestamp, t->tablename, t->uuid));
-			return 1;
+				t->callback(0, t->user_data, "SQL malloc");
+			return 0;			
 		}
 
-		//get list of SQLite table columns
-		struct columns_list_t * list = new_columns_list();
-		{
-			char SQL[BUFSIZ];
-			sprintf(SQL, "SELECT * FROM %s", t->tablename);
-			sqlite_connect_execute_function(SQL, t->database, &list, columns_list_callback);
-		}
-
-		//for each node in list
-		while(list->prev != NULL) {
-			cJSON * item  = cJSON_GetObjectItem(json, list->column_name);
-			char  * value = cJSON_GetStringValue(item);
-			printf("VALUE: %s\n", cJSON_Print(item));
-
-			if (value){
-				size_t size = strlen(value);
-				if (size > 0) {
-					char * SQL  = malloc(BUFSIZ + size);	
-					if (SQL == NULL){
-						perror("SQL malloc");
-					}
-					snprintf(SQL,
-							BUFSIZ + size,
-							"INSERT INTO %s (uuid) "
-							"SELECT '%s' "
-							"WHERE NOT EXISTS (SELECT 1 FROM %s WHERE uuid = '%s'); "
-							"UPDATE %s SET '%s' = '%s' WHERE uuid = '%s'"
-							,
-							t->tablename, 
-							t->uuid,
-							t->tablename, t->uuid,
-							t->tablename, list->column_name, value, t->uuid		
-					);
-					printf("SQL STRING: %s\n", SQL);
-					sqlite_connect_execute(SQL, t->database);
-					free(SQL);
-				}
-			}
-			//do cicle
-			struct columns_list_t * ptr = list;
-			list = list->prev;
-			free(ptr);
-		}
-		free(list);
-
-		//delete JSON
-		cJSON_Delete(json);
-		
+		snprintf(SQL,
+				BUFSIZ + size,
+				"INSERT INTO %s (uuid) "
+				"SELECT '%s' "
+				"WHERE NOT EXISTS (SELECT 1 FROM %s WHERE uuid = '%s'); "
+				"UPDATE %s SET '%s' = '%s' WHERE uuid = '%s'"
+				,
+				t->tablename, 
+				t->uuid,
+				t->tablename, t->uuid,
+				t->tablename, t->column_name, (char *)data, t->uuid		
+		);
+		printf("SQL STRING: %s\n", SQL);
+		sqlite_connect_execute(SQL, t->database);
+		free(SQL);
+			
 		//make callback		
 		t->callback(size, t->user_data, NULL);
-
-		//free user_data
-		if (user_data)
-			free(user_data);
 	}
+
+	//free user_data
+	if (user_data)
+		free(user_data);
 
 	return 0;
 }
@@ -279,42 +220,57 @@ sqlite2yandexdisk_update_from_cloud(
 
 	//get list of tiimestamp dir
 	struct columns_list_t *list = new_columns_list();
+	struct filelist_callback_t l = {
+		.callback = callback,
+		.user_data = user_data,
+		.list = &list
+	};
 	sprintf(rowpath, "%s/%ld", path, max);
-	c_yandex_disk_ls(token, rowpath, list, filelist_callback);
+	c_yandex_disk_ls(token, rowpath, &l, filelist_callback);
 
-	//download json for max time and update SQLite 
-	struct update_from_cloud_t * d = malloc(sizeof(struct update_from_cloud_t));
-	if (d == NULL){
-		perror("update_from_cloud_t malloc");
-		if (callback)
-			callback(0, user_data, "update_from_cloud_t malloc");
-		
-		return;
+	//for each in list download data 
+	while(list->prev != NULL) {
+		//download data for max time and update SQLite 
+		struct update_from_cloud_t * d = malloc(sizeof(struct update_from_cloud_t));
+		if (d == NULL){
+			perror("update_from_cloud_t malloc");
+			if (callback)
+				callback(0, user_data, "update_from_cloud_t malloc");
+
+			return;
+		}
+
+		d->callback = callback;
+		d->user_data = user_data;
+		d->timestamp = max;
+		strcpy(d->database,database);
+		strcpy(d->tablename, tablename);
+		strcpy(d->uuid, uuid);
+		strcpy(d->column_name, list->column_name);
+
+		char keypath[BUFSIZ];
+		sprintf(keypath, "app:/%s/%s/%s/%ld/%s", path, tablename, uuid, max, list->column_name);	
+
+		printf("YandexDisk dowload path: %s, token: %s\n", keypath, token);
+
+		c_yandex_disk_download_data(
+				token,	
+				keypath, 
+				true,
+				d, 
+				update_from_cloud_callback, 
+				NULL, 
+				NULL
+				);
+
+		//do cicle
+		struct columns_list_t * ptr = list;
+		list = list->prev;
+		free(ptr);
 	}
-
-	d->callback = callback;
-	d->user_data = user_data;
-	d->timestamp = max;
-	strcpy(d->database,database);
-	strcpy(d->tablename, tablename);
-	strcpy(d->uuid, uuid);
+	free(list);
 	
-	char key[BUFSIZ]; 
-	sprintf(key, "%ld", max);
 
-	char keypath[BUFSIZ];
-	sprintf(keypath, "app:/%s/%s/%s/%s", path, tablename, uuid, key);	
 
-	printf("YandexDisk dowload path: %s, token: %s\n", keypath, token);
-
-	c_yandex_disk_download_data(
-			token,	
-			keypath, 
-			true,
-			d, 
-			update_from_cloud_callback, 
-			NULL, 
-			NULL
-			);
 	
 }
