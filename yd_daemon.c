@@ -2,7 +2,7 @@
  * File              : yd_daemon.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 20.07.2022
- * Last Modified Date: 12.09.2022
+ * Last Modified Date: 19.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -268,7 +268,7 @@ void yd_update_data(struct yd_data_t * d)
 		if (t.localchange) {
 			if (t.deleted) {
 				//delete from yandex disk
-				printf("ya daemon: try to delete: TOKEN: %s; PATH: %s; DB: %s; TABLE: %s; UUID: %s\n", d->token, PATH, d->database_path, t.tablename, t.uuid);
+				printf("yd daemon: try to delete: TOKEN: %s; PATH: %s; DB: %s; TABLE: %s; UUID: %s\n", d->token, PATH, d->database_path, t.tablename, t.uuid);
 				char * error = NULL;
 				char path[BUFSIZ];
 				sprintf(path, "app:/%s/%s/%s", PATH, t.tablename, t.uuid);						
@@ -297,7 +297,7 @@ void yd_update_data(struct yd_data_t * d)
 					data->deleted = t.deleted;
 				}
 
-				printf("ya daemon: try to upload: TOKEN: %s; PATH: %s; DB: %s; TABLE: %s; UUID: %s; TIME: %ld\n", d->token, PATH, d->database_path, t.tablename, t.uuid, t.timestamp);
+				printf("yd daemon: try to upload: TOKEN: %s; PATH: %s; DB: %s; TABLE: %s; UUID: %s; TIME: %ld\n", d->token, PATH, d->database_path, t.tablename, t.uuid, t.timestamp);
 				sqlite2yandexdisk_upload(
 					d->token, 
 					PATH, 
