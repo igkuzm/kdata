@@ -2,7 +2,7 @@
  * File              : yd_upload.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 03.05.2022
- * Last Modified Date: 12.09.2022
+ * Last Modified Date: 19.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -82,6 +82,7 @@ upload_value_for_key(
 		const char * path,
 		const char * tablename,
 		const char * identifier,
+		time_t timestamp,
 		void * value,
 		size_t size,
 		const char * key,
@@ -149,6 +150,22 @@ int sqlite2json_callback(void *data, int argc, char **argv, char **titles) {
 	return 1; //stop execution
 }
 
+struct sqlite2yandexdisk_upload_d{
+	int (*callback)(size_t size, void *user_data, char *error);			
+	void *user_data;
+	time_t timestamp;
+};
+
+int sqlite2yandexdisk_upload_callback(void *data, int argc, char **argv, char **titles) {
+	struct sqlite2yandexdisk_upload_d *d = data;
+
+	char timestamp_srt[16]; sprintf(key, "%ld", d->timestamp); //timestamp as string
+	
+
+
+	return 0;
+}
+
 void
 sqlite2yandexdisk_upload(
 		const char * token,
@@ -165,25 +182,17 @@ sqlite2yandexdisk_upload(
 			)		
 		)
 {
-	//get json from sqlite
-	cJSON * json = cJSON_CreateObject();
+	//get data from table and upload data 
+	struct sqlite2yandexdisk_upload_d d = {
+		.callback = callback;
+		.user_data = user_data;
+		.timestamp = timestamp;
+	};	
+
 	char SQL[BUFSIZ];
 	sprintf(SQL, "SELECT * FROM %s WHERE uuid ='%s'", tablename, uuid);
-	sqlite_connect_execute_function(SQL, database, json, sqlite2json_callback);
-
-	//check json
-	if (cJSON_GetArraySize(json) < 1){
-		if (callback)
-			callback(0, user_data, STR("can't create JSON for %s: %s", tablename, uuid));
-		cJSON_Delete(json);
-		return;
-	}
-
-	//save json to Yandex Disk
-	char * value = cJSON_Print(json);
-	printf("JSON TO UPLOAD: %s\n", value);
-	size_t size = strlen(value);
-	printf("JSON SIZE: %ld\n", size);
+	sqlite_connect_execute_function(SQL, database, json, sqlite2yandexdisk_upload_callback);
+	
 
 	char key[16]; sprintf(key, "%ld", timestamp); //timestamp as key
 	
