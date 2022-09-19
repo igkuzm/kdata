@@ -2,7 +2,7 @@
  * File              : yd_update_from_cloud.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 29.07.2022
- * Last Modified Date: 19.09.2022
+ * Last Modified Date: 20.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -139,6 +139,7 @@ struct filelist_callback_t{
 };
 
 int filelist_callback(c_yd_file_t *file, void *user_data, char *error){
+	printf("kdata daemon: starting filelist_callback\n");
 	struct filelist_callback_t * t = user_data;
 	if (error){
 		if(t->callback)
@@ -147,6 +148,7 @@ int filelist_callback(c_yd_file_t *file, void *user_data, char *error){
 	}
 
 	//add file title to list
+	printf("kdata daemon: add filename: %s to list\n", file->name);
 	struct columns_list_t * new_list = new_columns_list();
 	new_list->prev = *t->list;
 	strncpy(new_list->column_name, file->name, 255);
