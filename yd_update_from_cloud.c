@@ -86,10 +86,6 @@ int update_from_cloud_callback(size_t size, void *data, void *user_data, char *e
 	if (user_data)
 		free(user_data);
 
-	//free data
-	if (size)
-		free(data);
-
 	return 0;
 }
 		
