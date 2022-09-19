@@ -13,7 +13,6 @@
 
 #include "yd.h"
 #include "SQLiteConnect/SQLiteConnect.h"
-#include "cYandexDisk/cJSON.h"
 #include "cYandexDisk/cYandexDisk.h"
 
 #define STR(...)\
@@ -146,19 +145,33 @@ struct sqlite2yandexdisk_upload_d{
 	int (*callback)(size_t size, void *user_data, char *error);			
 	void *user_data;
 	const char * token;
-	const char * path,
-	const char * database,
-	const char * tablename,
-	const char * uuid,		
+	const char * path;
+	const char * database;
+	const char * tablename;
+	const char * uuid;		
 	time_t timestamp;
 };
 
 int sqlite2yandexdisk_upload_callback(void *data, int argc, char **argv, char **titles) {
 	struct sqlite2yandexdisk_upload_d *d = data;
-	upload_value_for_key(
-		d->token,
 
-	);
+	int i;
+	for (i = 0; i < argc; ++i) {
+		if (argv[i]){
+			upload_value_for_key(
+				d->token,
+				d->path,
+				d->tablename,
+				d->uuid,
+				d->timestamp,
+				argv[i],
+				strlen(argv[i]),
+				titles[i],
+				d->user_data,
+				d->callback
+			);
+		}
+	}
 	
 
 	return 0;
@@ -190,12 +203,4 @@ sqlite2yandexdisk_upload(
 	char SQL[BUFSIZ];
 	sprintf(SQL, "SELECT * FROM %s WHERE uuid ='%s'", tablename, uuid);
 	sqlite_connect_execute_function(SQL, database, json, sqlite2yandexdisk_upload_callback);
-	
-
-	char key[16]; sprintf(key, "%ld", timestamp); //timestamp as key
-	
-	upload_value_for_key(token, path, tablename, uuid, value, size, key, user_data, callback);
-
-	//delete JSON
-	cJSON_Delete(json);
 }
