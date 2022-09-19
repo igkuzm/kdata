@@ -523,7 +523,7 @@ void kdata_daemon_init(
 	}
 
 	if (service == DSERVICE_YANDEX){
-		yd_daemon_init(filepath, token, user_data, callback);
+		yd_daemon_init(filepath, token, s, user_data, callback);
 		return;
 	}
 }
