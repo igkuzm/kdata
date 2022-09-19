@@ -228,6 +228,7 @@ sqlite2yandexdisk_update_from_cloud(
 		.list = &list
 	};
 	sprintf(rowpath, "%s/%ld", path, max);
+	printf("kdata daemon: get filelist for path: %s\n", rowpath);
 	c_yandex_disk_ls(token, rowpath, &l, filelist_callback);
 
 	//for each in list download data 
