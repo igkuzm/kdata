@@ -170,7 +170,7 @@ int sqlite2yandexdisk_upload_callback(void *data, int argc, char **argv, char **
 				d->uuid,
 				d->timestamp,
 				argv[i],
-				strlen(argv[i]),
+				strlen(argv[i]) + 1, //save zero in the end of string
 				titles[i],
 				d->user_data,
 				d->callback
