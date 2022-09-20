@@ -300,7 +300,6 @@ void yd_update_data(struct yd_data_t * d)
 			list = list->prev;
 			free(ptr);
 		}
-		free(list);
 		
 		//iterate database structure
 		ptr = ptr->next;
