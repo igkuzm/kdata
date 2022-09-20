@@ -273,4 +273,5 @@ sqlite2yandexdisk_update_from_cloud(
 		list = list->prev;
 		free(ptr);
 	}
+	free(list);
 }

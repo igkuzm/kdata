@@ -296,10 +296,11 @@ void yd_update_data(struct yd_data_t * d)
 				);
 			}
 			//free memory & cicle
-			struct uuid_list *ptr = list;
+			struct uuid_list *prev = list;
 			list = list->prev;
-			free(ptr);
+			free(prev);
 		}
+		free(list);
 		
 		//iterate database structure
 		ptr = ptr->next;
