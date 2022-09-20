@@ -2,7 +2,7 @@
  * File              : kdata.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.09.2022
- * Last Modified Date: 12.09.2022
+ * Last Modified Date: 20.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -165,6 +165,7 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 				 "deleted INT"
 				 ")"
 	;
+	daemon_callback(user_data, NULL, SQL);
 	int res = sqlite_connect_execute(SQL, filepath);
 	if (res) 
 		return KERR_SQLITE_EXECUTE;	
@@ -199,6 +200,7 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 			//add uuid key to table
 			strcat(SQL, "uuid TEXT )");
 
+			daemon_callback(user_data, NULL, SQL);
 			int res = sqlite_connect_execute(SQL, filepath);
 			if (res) 
 				return KERR_SQLITE_EXECUTE;
