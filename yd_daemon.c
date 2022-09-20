@@ -146,10 +146,15 @@ int transfer_update_from_cloud_callback(size_t size, void *user_data, char *erro
 
 	//update timestaps table
 	if (size) {
+		time_t timestamp = data->timestamp;
+		if (timestamp == 0)
+			timestamp = time(NULL);
+
 		if(data->callback)
 			data->callback(data->user_data, data->thread, STR("kdata daemon: downloaded data for table: %s"
 															  ", uuid: %s, timestamp: %ld"
-															  ", size: %ld", data->tablename, data->uuid, data->timestamp, size));
+															  ", size: %ld", data->tablename, data->uuid, timestamp, size));
+
 		char SQL[BUFSIZ];
 		sprintf(SQL,
 				"INSERT INTO kdata_updates (uuid) "
@@ -159,7 +164,7 @@ int transfer_update_from_cloud_callback(size_t size, void *user_data, char *erro
 				,
 				data->uuid,
 				data->uuid,
-				data->timestamp, data->tablename, data->deleted, data->uuid		
+				timestamp, data->tablename, data->deleted, data->uuid		
 		);		
 		sqlite_connect_execute(SQL, data->database_path);
 	}
