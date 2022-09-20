@@ -2,7 +2,7 @@
  * File              : yd_upload.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 03.05.2022
- * Last Modified Date: 19.09.2022
+ * Last Modified Date: 20.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -163,19 +163,21 @@ int sqlite2yandexdisk_upload_callback(void *data, int argc, char **argv, char **
 	int i;
 	for (i = 0; i < argc; ++i) {
 		if (argv[i]){
-			printf("sqlite2yandexdisk_upload: upload data for value: %s\n", titles[i]);
-			upload_value_for_key(
-				d->token,
-				d->path,
-				d->tablename,
-				d->uuid,
-				d->timestamp,
-				argv[i],
-				strlen(argv[i]) + 1, //save zero in the end of string
-				titles[i],
-				d->user_data,
-				d->callback
-			);
+			if (strcmp("uuid", argv[i])){ //don't use uuid column
+				printf("sqlite2yandexdisk_upload: upload data for value: %s\n", titles[i]);
+				upload_value_for_key(
+					d->token,
+					d->path,
+					d->tablename,
+					d->uuid,
+					d->timestamp,
+					argv[i],
+					strlen(argv[i]) + 1, //save zero in the end of string
+					titles[i],
+					d->user_data,
+					d->callback
+				);
+			}
 		}
 	}
 	

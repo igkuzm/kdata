@@ -149,12 +149,14 @@ int filelist_callback(c_yd_file_t *file, void *user_data, char *error){
 	}
 
 	//add file title to list
-	printf("kdata daemon: add filename: %s to list\n", file->name);
-	struct columns_list_t * new_list = new_columns_list();
-	new_list->prev = *t->list;
-	strncpy(new_list->column_name, file->name, 255);
-	new_list->column_name[255] = 0;
-	*t->list = new_list;
+	if (strcmp("uuid", file->name)){ //don't use uuid in name
+		printf("kdata daemon: add filename: %s to list\n", file->name);
+		struct columns_list_t * new_list = new_columns_list();
+		new_list->prev = *t->list;
+		strncpy(new_list->column_name, file->name, 255);
+		new_list->column_name[255] = 0;
+		*t->list = new_list;
+	}
 	
 	return 0;
 }
