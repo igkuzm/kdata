@@ -2,7 +2,7 @@
  * File              : yd_upload.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 03.05.2022
- * Last Modified Date: 12.09.2022
+ * Last Modified Date: 19.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -13,7 +13,6 @@
 
 #include "yd.h"
 #include "SQLiteConnect/SQLiteConnect.h"
-#include "cYandexDisk/cJSON.h"
 #include "cYandexDisk/cYandexDisk.h"
 
 #define STR(...)\
@@ -68,10 +67,8 @@ int upload_value_for_key_callback(size_t size, void *user_data, char *error){
 	struct upload_value_for_key_t * t = user_data;
 	t->callback(size, t->user_data, error);
 
-	if (!error) {
-		free(t->value);
-		free(t);
-	}
+	free(t->value);
+	free(t);
 
 	return 0;
 }
@@ -82,6 +79,7 @@ upload_value_for_key(
 		const char * path,
 		const char * tablename,
 		const char * identifier,
+		time_t timestamp,
 		void * value,
 		size_t size,
 		const char * key,
@@ -104,6 +102,14 @@ upload_value_for_key(
 		perror(error);
 	}	
 
+	//create directory for timestamp
+	sprintf(rowpath, "%s/%ld", rowpath, timestamp);
+	error = NULL;
+	c_yandex_disk_mkdir(token, rowpath, &error);
+	if (error) {
+		perror(error);
+	}	
+
 	//upload data for key
 	struct upload_value_for_key_t * t = malloc(sizeof(struct upload_value_for_key_t));
 	if (t==NULL){
@@ -112,7 +118,14 @@ upload_value_for_key(
 			callback(0, user_data, "Can't allocate memory for upload_value_for_key_t");
 		return;
 	}
-	t->value = value;
+	t->value = malloc(size);
+	if (t->value == NULL){
+		perror("value malloc");
+		if (callback)
+			callback(0, user_data, "Can't allocate memory for value");
+		return;		
+	}
+	memcpy(t->value, value, size);
 	t->user_data = user_data;
 	t->callback = callback;
 
@@ -133,20 +146,41 @@ upload_value_for_key(
 }
 
 
-int sqlite2json_callback(void *data, int argc, char **argv, char **titles) {
-	//create json
-	cJSON * json = data;
+struct sqlite2yandexdisk_upload_d{
+	int (*callback)(size_t size, void *user_data, char *error);			
+	void *user_data;
+	const char * token;
+	const char * path;
+	const char * database;
+	const char * tablename;
+	const char * uuid;		
+	time_t timestamp;
+};
 
-	//for each column
+int sqlite2yandexdisk_upload_callback(void *data, int argc, char **argv, char **titles) {
+	struct sqlite2yandexdisk_upload_d *d = data;
+
 	int i;
 	for (i = 0; i < argc; ++i) {
-		char * title = titles[i];
-		char * value = argv[i]; if (value == NULL) value = "";
-
-		cJSON_AddItemToObject(json, title, cJSON_CreateString(value));
+		if (argv[i]){
+			printf("sqlite2yandexdisk_upload: upload data for value: %s\n", titles[i]);
+			upload_value_for_key(
+				d->token,
+				d->path,
+				d->tablename,
+				d->uuid,
+				d->timestamp,
+				argv[i],
+				strlen(argv[i]) + 1, //save zero in the end of string
+				titles[i],
+				d->user_data,
+				d->callback
+			);
+		}
 	}
+	
 
-	return 1; //stop execution
+	return 0;
 }
 
 void
@@ -165,30 +199,19 @@ sqlite2yandexdisk_upload(
 			)		
 		)
 {
-	//get json from sqlite
-	cJSON * json = cJSON_CreateObject();
+	//get data from table and upload data 
+	struct sqlite2yandexdisk_upload_d d = {
+		.token = token,
+		.path = path,
+		.database = database,
+		.tablename = tablename,
+		.uuid = uuid,
+		.timestamp = timestamp,
+		.user_data = user_data,
+		.callback = callback
+	};	
+
 	char SQL[BUFSIZ];
 	sprintf(SQL, "SELECT * FROM %s WHERE uuid ='%s'", tablename, uuid);
-	sqlite_connect_execute_function(SQL, database, json, sqlite2json_callback);
-
-	//check json
-	if (cJSON_GetArraySize(json) < 1){
-		if (callback)
-			callback(0, user_data, STR("can't create JSON for %s: %s", tablename, uuid));
-		cJSON_Delete(json);
-		return;
-	}
-
-	//save json to Yandex Disk
-	char * value = cJSON_Print(json);
-	printf("JSON TO UPLOAD: %s\n", value);
-	size_t size = strlen(value);
-	printf("JSON SIZE: %ld\n", size);
-
-	char key[16]; sprintf(key, "%ld", timestamp); //timestamp as key
-	
-	upload_value_for_key(token, path, tablename, uuid, value, size, key, user_data, callback);
-
-	//delete JSON
-	cJSON_Delete(json);
+	sqlite_connect_execute_function(SQL, database, &d, sqlite2yandexdisk_upload_callback);
 }

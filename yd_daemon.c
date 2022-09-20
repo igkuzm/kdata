@@ -2,7 +2,7 @@
  * File              : yd_daemon.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 20.07.2022
- * Last Modified Date: 12.09.2022
+ * Last Modified Date: 19.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -30,6 +30,7 @@
 struct yd_data_t{
 	char database_path[BUFSIZ];
 	char token[128];
+	kdata_s * s; 
 	void * user_data;
 	pthread_t thread;
 	int (*callback)(void * user_data, pthread_t thread, char * msg);
@@ -204,11 +205,12 @@ void yd_update_data(struct yd_data_t * d)
 	sqlite_connect_execute_function(SQL, d->database_path, array, ya_t_get);
 
 	//update from cloud
-	char * tables[] = {"rating", "images"};
-	for (k = 0; k < 1; ++k) {
+	kdata_s * ptr = d->s;
+	while (ptr) {
+		kdata_table table = ptr->table;
 		struct uuid_list *list = NEW(struct uuid_list); list->prev = NULL;
 		char path[BUFSIZ];
-		sprintf(path, "app:/%s/%s", PATH, tables[k]);
+		sprintf(path, "app:/%s/%s", PATH, table.tablename);
 
 		//get list of uuid
 		c_yandex_disk_ls(
@@ -233,7 +235,7 @@ void yd_update_data(struct yd_data_t * d)
 							d->thread,
 							d->callback,
 							t.uuid,
-							tables[k],
+							table.tablename,
 							t.timestamp,
 							t.deleted
 						);
@@ -249,7 +251,7 @@ void yd_update_data(struct yd_data_t * d)
 					d->thread,
 					d->callback,
 					uuid,
-					tables[k],
+					table.tablename,
 					0,
 					0
 				);
@@ -260,6 +262,9 @@ void yd_update_data(struct yd_data_t * d)
 			free(ptr);
 		}
 		free(list);
+		
+		//iterate database structure
+		ptr = ptr->next;
 	}
 
 	//upload to cloud
@@ -268,7 +273,7 @@ void yd_update_data(struct yd_data_t * d)
 		if (t.localchange) {
 			if (t.deleted) {
 				//delete from yandex disk
-				printf("ya daemon: try to delete: TOKEN: %s; PATH: %s; DB: %s; TABLE: %s; UUID: %s\n", d->token, PATH, d->database_path, t.tablename, t.uuid);
+				printf("yd daemon: try to delete: TOKEN: %s; PATH: %s; DB: %s; TABLE: %s; UUID: %s\n", d->token, PATH, d->database_path, t.tablename, t.uuid);
 				char * error = NULL;
 				char path[BUFSIZ];
 				sprintf(path, "app:/%s/%s/%s", PATH, t.tablename, t.uuid);						
@@ -297,7 +302,7 @@ void yd_update_data(struct yd_data_t * d)
 					data->deleted = t.deleted;
 				}
 
-				printf("ya daemon: try to upload: TOKEN: %s; PATH: %s; DB: %s; TABLE: %s; UUID: %s; TIME: %ld\n", d->token, PATH, d->database_path, t.tablename, t.uuid, t.timestamp);
+				printf("yd daemon: try to upload: TOKEN: %s; PATH: %s; DB: %s; TABLE: %s; UUID: %s; TIME: %ld\n", d->token, PATH, d->database_path, t.tablename, t.uuid, t.timestamp);
 				sqlite2yandexdisk_upload(
 					d->token, 
 					PATH, 
@@ -338,6 +343,7 @@ void
 yd_daemon_init(
 			const char * database_path,
 			const char * token,
+			kdata_s * s, 
 			void * user_data,
 			int (*callback)(void * user_data, pthread_t thread, char * msg)
 		)
@@ -357,6 +363,7 @@ yd_daemon_init(
 	struct yd_data_t *d = NEW(struct yd_data_t);
 	strcpy(d->database_path, database_path);
 	strcpy(d->token, token);
+	d->s = s;
 	d->callback = callback;
 	d->thread = tid;
 	d->user_data = user_data;

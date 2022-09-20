@@ -1,8 +1,14 @@
 /**
  * File              : kdata.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
- * Date              : 11.09.2022
+ * Date              : 20.09.2022
  * Last Modified Date: 20.09.2022
+ * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
+ */
+/**
+ * File              : kdata.c
+ * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
+ * Date              : 11.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -165,14 +171,14 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 				 "deleted INT"
 				 ")"
 	;
-	daemon_callback(user_data, NULL, SQL);
 	int res = sqlite_connect_execute(SQL, filepath);
 	if (res) 
 		return KERR_SQLITE_EXECUTE;	
 	
 	//create table for each in strucuture
-	while (s) {
-		kdata_table t = s->table;
+	kdata_s * ptr = s;
+	while (ptr) {
+		kdata_table t = ptr->table;
 		if (t.columns_count > 0){
 			char SQL[BUFSIZ] = "CREATE TABLE IF NOT EXISTS ";
 			strcat(SQL, t.tablename);
@@ -200,18 +206,17 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 			//add uuid key to table
 			strcat(SQL, "uuid TEXT )");
 
-			daemon_callback(user_data, NULL, SQL);
 			int res = sqlite_connect_execute(SQL, filepath);
 			if (res) 
 				return KERR_SQLITE_EXECUTE;
 		}
 		
 		//iterate database structure
-		s = s->next;
+		ptr = ptr->next;
 	}
 
 	//start daemon
-	kdata_daemon_init(filepath, service, token, user_data, daemon_callback);	
+	kdata_daemon_init(filepath, service, token, s, user_data, daemon_callback);	
 	
 	return KERR_NOERR;	
 }
@@ -513,6 +518,7 @@ void kdata_daemon_init(
 			const char * filepath,
 			DSERVICE service,
 			const char * token,
+			kdata_s * s, 
 			void * user_data,
 			int (*callback)(void * user_data, pthread_t thread, char * msg)
 		)
@@ -524,7 +530,7 @@ void kdata_daemon_init(
 	}
 
 	if (service == DSERVICE_YANDEX){
-		yd_daemon_init(filepath, token, user_data, callback);
+		yd_daemon_init(filepath, token, s, user_data, callback);
 		return;
 	}
 }

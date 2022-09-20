@@ -2,7 +2,7 @@
  * File              : kdata.h
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.09.2022
- * Last Modified Date: 14.09.2022
+ * Last Modified Date: 19.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -182,6 +182,7 @@ extern "C"{
 			const char * filepath,
 			DSERVICE service,
 			const char * token,
+			kdata_s * structure, 
 			void * user_data,
 			int (*callback)(
 				void * user_data, 
@@ -193,6 +194,7 @@ extern "C"{
 	void yd_daemon_init(
 				const char * filepath,
 				const char * token,
+				kdata_s * structure, 
 				void * user_data,
 				int (*callback)(
 					void * user_data, 
