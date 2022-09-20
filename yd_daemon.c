@@ -2,7 +2,7 @@
  * File              : yd_daemon.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 20.07.2022
- * Last Modified Date: 19.09.2022
+ * Last Modified Date: 20.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -108,8 +108,8 @@ int ya_t_get(void *user_data, int argc, char *argv[], char *titles[])
 	return 0;
 }
 
-int transfer_callback(size_t size, void *user_data, char *error){
-	printf("kdata daemon: starting transfer_callback\n");
+int transfer_upload_callback(size_t size, void *user_data, char *error){
+	printf("kdata daemon: starting transfer_upload_callback\n");
 	struct yd_data_t *data = user_data;
 	if (data == NULL) {
 		printf("kdata daemon: ERROR! Data is NULL\n");
@@ -122,11 +122,45 @@ int transfer_callback(size_t size, void *user_data, char *error){
 	//update timestaps table
 	if (size) {
 		if(data->callback)
-			data->callback(data->user_data, data->thread, STR("kdata daemon: updated data for table: %s"
+			data->callback(data->user_data, data->thread, STR("kdata daemon: upload data for table: %s"
 															  ", uuid: %s, timestamp: %ld"
 															  ", size: %ld", data->tablename, data->uuid, data->timestamp, size));
 		char SQL[BUFSIZ];
-		sprintf(SQL, "UPDATE kdata_updates SET localchange = 0, timestamp = %ld WHERE uuid = '%s'", data->timestamp, data->uuid);
+		sprintf(SQL, "UPDATE kdata_updates SET timestamp = %ld WHERE uuid = '%s'", data->timestamp, data->uuid);
+		sqlite_connect_execute(SQL, data->database_path);
+	}
+
+	return 1;
+}
+
+int transfer_update_from_cloud_callback(size_t size, void *user_data, char *error){
+	printf("kdata daemon: starting transfer_update_from_cloud_callback\n");
+	struct yd_data_t *data = user_data;
+	if (data == NULL) {
+		printf("kdata daemon: ERROR! Data is NULL\n");
+		return 1;
+	}
+	if (error)
+		if(data->callback)
+			data->callback(data->user_data, data->thread, error);
+
+	//update timestaps table
+	if (size) {
+		if(data->callback)
+			data->callback(data->user_data, data->thread, STR("kdata daemon: downloaded data for table: %s"
+															  ", uuid: %s, timestamp: %ld"
+															  ", size: %ld", data->tablename, data->uuid, data->timestamp, size));
+		char SQL[BUFSIZ];
+		sprintf(SQL,
+				"INSERT INTO kdata_updates (uuid) "
+				"SELECT '%s' "
+				"WHERE NOT EXISTS (SELECT 1 FROM kdata_updates WHERE uuid = '%s'); "
+				"UPDATE kdata_updates SET timestamp = %ld, tablename = '%s', localchange = 0, deleted = %d WHERE uuid = '%s'"
+				,
+				data->uuid,
+				data->uuid,
+				data->timestamp, data->tablename, data->deleted, data->uuid		
+		);		
 		sqlite_connect_execute(SQL, data->database_path);
 	}
 
@@ -191,7 +225,7 @@ void update_from_cloud_with_data(
 			timestamp, 
 			false, 
 			&data, //void *user_data, 
-			transfer_callback //int (*callback)(size_t, void *, char *)
+			transfer_update_from_cloud_callback //int (*callback)(size_t, void *, char *)
 		);	
 }
 
@@ -311,7 +345,7 @@ void yd_update_data(struct yd_data_t * d)
 					t.uuid, 
 					t.timestamp, 
 					data, //void *user_data, 
-					transfer_callback //int (*callback)(size_t, void *, char *)
+					transfer_upload_callback //int (*callback)(size_t, void *, char *)
 				);
 			}
 		}
