@@ -169,7 +169,7 @@ int transfer_update_from_cloud_callback(size_t size, void *user_data, char *erro
 		sqlite_connect_execute(SQL, data->database_path);
 	}
 
-	return 1;
+	return 0;
 }
 
 struct uuid_list {
