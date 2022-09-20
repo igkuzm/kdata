@@ -2,7 +2,7 @@
  * File              : kdata.h
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.09.2022
- * Last Modified Date: 19.09.2022
+ * Last Modified Date: 20.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -72,6 +72,9 @@ extern "C"{
 		int columns_count;
 		kdata_column * columns;
 	} kdata_table;
+
+	//allocate table
+	kdata_table * kdata_table_new();
 	
 	//new table with columns; va_args: type, key, ... NULL
 	void kdata_table_init(kdata_table * t, const char * tablename, ...); 
