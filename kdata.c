@@ -5,13 +5,6 @@
  * Last Modified Date: 20.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
-/**
- * File              : kdata.c
- * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
- * Date              : 11.09.2022
- * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
- */
-
 #include "kdata.h"
 
 #include <stdio.h>
