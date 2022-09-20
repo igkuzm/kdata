@@ -35,6 +35,11 @@ const char * kdata_parse_kerr(kerr err){
 	return "";
 }
 
+kdata_table * kdata_table_new(){
+	kdata_table * t = malloc(sizeof(kdata_table));
+	return t;	
+}
+
 void kdata_table_init(kdata_table * t, const char * tablename, ...){
 	//set tablename
 	strncpy(t->tablename, tablename, sizeof(t->tablename) - 1);
