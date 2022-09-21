@@ -202,15 +202,6 @@ void yd_upload(
 			return;
 		}				
 
-		//remove data from update table
-		sprintf(SQL, "DELETE FROM kdata_updates WHERE uuid = '%s'", u->uuid);
-		err = sqlite_connect_execute(SQL, d->database_path);
-		if (err){
-			if (d->callback)
-				d->callback(d->user_data, d->thread, STR("yd_upload: %s. Error: %d", SQL, err));
-			return;
-		}				
-
 		//callback
 		if (d->callback)
 			d->callback(d->user_data, d->thread, STR("yd_upload: uploaded data for: %s in: %s", u->uuid, u->tablename));		

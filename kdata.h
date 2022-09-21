@@ -239,8 +239,8 @@ extern "C"{
 			);
 
 	void yd_upload(
-			struct yd_data_t *d, 
-			struct update_s * u
+			struct yd_data_t *yddata, 
+			struct update_s * update
 			);
 	
 	
