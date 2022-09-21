@@ -522,7 +522,7 @@ void kdata_daemon_init(
 {
 	if (service == DSERVICE_LOCAL){
 		if (callback)
-			callback(user_data, NULL, "kdata daemon: local only");
+			callback(user_data, 0, "kdata daemon: local only");
 		return;
 	}
 
