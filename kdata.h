@@ -15,6 +15,7 @@ extern "C"{
 
 	#include <stdio.h>
 	#include <stdlib.h>
+	#include <stdbool.h>
 	#include <pthread.h>
 
 #define SEC 300
@@ -209,7 +210,7 @@ extern "C"{
 	struct yd_data_t{
 		char database_path[BUFSIZ];
 		char token[128];
-		kdata_s * s; 
+		kdata_s * structure; 
 		void * user_data;
 		pthread_t thread;
 		int (*callback)(void * user_data, pthread_t thread, char * msg);
@@ -219,13 +220,29 @@ extern "C"{
 		int deleted;	
 	};
 
+	struct update_s {
+		char uuid[37];
+		char tablename[128];
+		time_t timestamp;
+		bool localchange;
+		bool deleted;
+	};
+
 	void 
-	kdata_get_yd_update(
-			const char * database,
-			const char * token,
-			kdata_s * structure,
+	yd_update(
 			struct yd_data_t *yddata
 			);	
+
+	void yd_download(
+			struct yd_data_t *yddata,
+			struct update_s * update
+			);
+
+	void yd_upload(
+			struct yd_data_t *d, 
+			struct update_s * u
+			);
+	
 	
 
 #ifdef __cplusplus
@@ -233,6 +250,3 @@ extern "C"{
 #endif
 
 #endif //k_data_h__
-
-
-

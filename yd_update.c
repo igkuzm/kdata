@@ -10,9 +10,6 @@
  * Implimation of functions to check updates is needed and create lists to update transfers
  */
 
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "kdata.h"
@@ -23,6 +20,7 @@
  * macros
  */
 #define NEW(T) ({T *new = malloc(sizeof(T)); new;})
+#define STR(...) ({char str[BUFSIZ]; sprintf(str, __VA_ARGS__); str;})
 
 /*
  * list functions 
@@ -76,16 +74,24 @@ void list_free(struct list_t *list){
 	for (item = ___ptr->data; ___ptr->next; ___ptr=___ptr->next, item = ___ptr->data)
 
 /*
- *
+ * Implimation
  */
 
+struct list_callback_s {
+	list_t ** l;
+	struct yd_data_t *d;
+};
+
 int uuids_in_cloud_callback(c_yd_file_t *file, void * user_data, char * error){
+	struct list_callback_s *s = user_data;
+	list_t ** l = s->l;
+	struct yd_data_t *d = s->d;
 	if (error){
-		printf("%s\n", error);
+		if (d->callback)
+			d->callback(d->user_data, d->thread, error);
 		return 0;
 	}
 	if (file){
-		list_t ** l = user_data;
 		char *uuid = malloc(37);
 		if (uuid){
 			strncpy(uuid, file->name, 36); uuid[36] = 0;
@@ -96,16 +102,8 @@ int uuids_in_cloud_callback(c_yd_file_t *file, void * user_data, char * error){
 	return 0;
 }
 
-struct updates_in_database_s {
-	char uuid[37];
-	char tablename[128];
-	time_t timestamp;
-	bool localchange;
-	bool deleted;
-};
-
 int updates_in_database_callback(void *user_data, int argc, char **argv, char **titles){
-	struct updates_in_database_s *s = NEW(struct updates_in_database_s);
+	struct update_s *s = NEW(struct update_s);
 	if (s){
 		list_t ** l = user_data;
 		int i;
@@ -133,12 +131,16 @@ int updates_in_database_callback(void *user_data, int argc, char **argv, char **
 }
 
 int timestamps_callback(c_yd_file_t *file, void * user_data, char * error){
+	struct list_callback_s *s = user_data;
+	list_t ** l = s->l;
+	struct yd_data_t *d = s->d;
+
 	if (error){
-		printf("%s\n", error);
+		if (d->callback)
+			d->callback(d->user_data, d->thread, error);
 		return 0;
 	}
 	if (file){
-		list_t ** l = user_data;
 		time_t *timestamp = malloc(sizeof(time_t));
 		if (timestamp){
 			*timestamp = atol(file->name);
@@ -150,12 +152,12 @@ int timestamps_callback(c_yd_file_t *file, void * user_data, char * error){
 }
 
 void
-kdata_get_yd_updates_list_compare(
+yd_update_list_compare(
+		struct yd_data_t *d,
 		struct list_t **list_to_upload,
 		struct list_t **list_to_download,
 		list_t * updates_in_database,
 		list_t * uuids_in_cloud,
-		const char * token,
 		const char *tablename,
 		const char * path,
 		bool deleted
@@ -167,25 +169,26 @@ kdata_get_yd_updates_list_compare(
 		bool new_to_download = true; //by default is new to download
 		//get timestamps
 		list_t * timestamps = list_new();	
+		struct list_callback_s cs = {.d = d, .l = &timestamps};
 		char datapath[BUFSIZ];
 		sprintf(datapath, "app:/%s/%s/%s", path, tablename, uuid);
-		int err = c_yandex_disk_ls(token, path, &timestamps, timestamps_callback);
+		int err = c_yandex_disk_ls(d->token, path, &cs, timestamps_callback);
 		//find max timestamp
 		time_t max = 0;
 		while (timestamps->next) {
 			time_t *timestamp = timestamps->data;
 			if (*timestamp > max)
 				max = *timestamp;
-			//itarete and free timestamp
+			//iterate and free timestamp
 			free(timestamp);
 			list_t * timestamps_ptr = timestamps;
 			timestamps = timestamps->next;
 			free(timestamps_ptr);
 		}
-		//for each int updates
+		//for each in updates
 		list_t * u = updates_in_database;
 		while (u->next){
-			struct updates_in_database_s *update = u->data; 
+			struct update_s *update = u->data; 
 			//if uuid matches	
 			if (!strcmp(uuid, update->uuid)){
 				new_to_download = false; //it's not new
@@ -197,7 +200,7 @@ kdata_get_yd_updates_list_compare(
 					list_remove(*list_to_upload, item);
 				} 
 				if (update->timestamp < max){
-					struct updates_in_database_s *update = NEW(struct updates_in_database_s);
+					struct update_s *update = NEW(struct update_s);
 					update->timestamp = max;
 					update->localchange = false;
 					update->deleted = deleted;
@@ -212,7 +215,7 @@ kdata_get_yd_updates_list_compare(
 		}
 		//if is new to download
 		if (new_to_download){
-			struct updates_in_database_s *update = NEW(struct updates_in_database_s);
+			struct update_s *update = NEW(struct update_s);
 			update->timestamp = max;
 			update->localchange = false;
 			update->deleted = deleted;			
@@ -223,21 +226,19 @@ kdata_get_yd_updates_list_compare(
 	}
 }
 
-void 
-kdata_get_yd_update(
-		const char * database,
-		const char * token,
-		kdata_s * structure,
-		void * user_data,
-		struct yd_data_t *yddata
-		)
+void yd_update(struct yd_data_t *d)
 {
 	int err = 0;
 
 	//get list of updates in database
 	list_t * updates_in_database = list_new();	
 	char SQL[] = "SELECT * FROM kdata_updates";
-	err = sqlite_connect_execute_function(SQL, database, &updates_in_database, updates_in_database_callback);
+	err = sqlite_connect_execute_function(SQL, d->database_path, &updates_in_database, updates_in_database_callback);
+	if (err){
+		if (d->callback)
+		   d->callback(d->user_data, d->thread, STR("yd_update: can't SELECT * FROM kdata_updates. Error: %d", err));	
+		return;
+	}
 
 	//list to upload
 	struct list_t *list_to_upload = list_new();
@@ -253,7 +254,7 @@ kdata_get_yd_update(
 	int i;
 	for (int i = 0; i < 2; i++) {
 		char *path = paths[i];
-		kdata_s * s = structure;	
+		kdata_s * s = d->structure;	
 		while (s) {
 			kdata_table table = s->table;
 			//get path
@@ -261,14 +262,20 @@ kdata_get_yd_update(
 			sprintf(datapath, "app:/%s/%s", path, table.tablename);
 			//get list of uuids in cloud
 			list_t * uuids_in_cloud = list_new();	
-			err = c_yandex_disk_ls(token, path, &uuids_in_cloud, uuids_in_cloud_callback);
+			struct list_callback_s cs = {.d = d, .l = &uuids_in_cloud};
+			err = c_yandex_disk_ls(d->token, path, &cs, uuids_in_cloud_callback);
+			if (err){
+				if (d->callback)
+				   d->callback(d->user_data, d->thread, STR("yd_update: c_yandex_disk_ls %s. Error: %d", path, err));	
+			}
+			
 			//compare
-			kdata_get_yd_updates_list_compare(
+			yd_update_list_compare(
+					d,
 					&list_to_upload, 
 					&list_to_download,
 					updates_in_database,
 					uuids_in_cloud,
-					token,
 					table.tablename,
 					path,
 					i
@@ -285,20 +292,22 @@ kdata_get_yd_update(
 	//upload data
 	{
 		list_for_each(list_to_upload, item){ //no need to free list (pointers to updates_in_database)
-			struct updates_in_database_s *update = item;			
-			/*! TODO: upload to cloud
-			*  \todo upload to cloud
-			*/			
+			struct update_s *update = item;			
+
+			//upload data
+			yd_upload(d, update);
 		}
 	}
 
 	//download data
 	{
 		while(list_to_download->next){ //need to free list
-			struct updates_in_database_s *update = list_to_download->data;			
-			/*! TODO: download data
-			*  \todo download data
-			*/
+			struct update_s *update = list_to_download->data;			
+			
+			//download data
+			yd_download(d, update);
+
+			//free args and iterate
 			free(update);
 			list_t *ptr = list_to_download;
 			list_to_download = list_to_download->next;

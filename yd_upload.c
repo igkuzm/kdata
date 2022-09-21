@@ -2,218 +2,218 @@
  * File              : yd_upload.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 03.05.2022
- * Last Modified Date: 20.09.2022
+ * Last Modified Date: 21.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
+#include "kdata.h"
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
-#include "yd.h"
 #include "SQLiteConnect/SQLiteConnect.h"
 #include "cYandexDisk/cYandexDisk.h"
 
-#define STR(...)\
-	({char ___str[BUFSIZ]; snprintf(___str, BUFSIZ-1, __VA_ARGS__); ___str[BUFSIZ-1] = 0; ___str;})
+#define NEW(T) ({T *new = malloc(sizeof(T)); new;})
+#define STR(...) ({char str[BUFSIZ]; snprintf(str, BUFSIZ-1, __VA_ARGS__); str[BUFSIZ-1]=0; str;})
 
 int
 create_directories(
 		const char * token,
-		const char * path,
-		const char * tablename
+		const char * path
 		)
 {
 	//buffer for path
 	char buf[BUFSIZ];
 	strncpy(buf, path, BUFSIZ - 1); buf[BUFSIZ - 1] = '\0';
 	//make directory for path - strtok to use path components
-	char _path[BUFSIZ] = "app:";
-	printf("We have a path path: %s\n", buf);
+	char _path[BUFSIZ];
 	char *p = strtok(buf, "/");
 	while (p) {
 		char *error = NULL;
 		sprintf(_path, "%s/%s", _path, p);
 		printf("make directories for path: %s\n", _path);
-		c_yandex_disk_mkdir(token, _path, &error);
+		if (strcmp("app:", _path)) //don't create 'app:' path
+			c_yandex_disk_mkdir(token, _path, &error);
 		if (error) {
 			perror(error);
 		}
 		p = strtok(NULL, "/");
 	}
 	
-	//make directory for table
-	char *error = NULL;
-	char tablepath[BUFSIZ]; 
-	sprintf(tablepath, "%s/%s", _path, tablename);
-	printf("make directories for table: %s\n", tablepath);
-	c_yandex_disk_mkdir(token, tablepath, &error);
-	if (error) {
-		perror(error);
-	}	
-
 	return 0;
 }
 
-struct upload_value_for_key_t {
-	void * value;
-	void *user_data;
-	int (*callback)(size_t size, void *user_data, char *error);
+struct yd_upload_s {
+	struct yd_data_t *d; 
+	struct update_s * u;
+	char key[128];
 };
 
-int upload_value_for_key_callback(size_t size, void *user_data, char *error){
-	//this is needed to free value and call callback
-	struct upload_value_for_key_t * t = user_data;
-	t->callback(size, t->user_data, error);
+int yd_upload_delete_callback(void *user_data, char *error){
+	struct yd_upload_s *s = user_data;
+	struct yd_data_t *d = s->d; 
+	struct update_s * u = s->u;	
 
-	free(t->value);
-	free(t);
-
-	return 0;
-}
-
-void
-upload_value_for_key(
-		const char * token,
-		const char * path,
-		const char * tablename,
-		const char * identifier,
-		time_t timestamp,
-		void * value,
-		size_t size,
-		const char * key,
-		void *user_data,           //pointer of data to transfer throw callback
-		int (*callback)(		   //callback function when upload finished 
-			size_t size,           //size of uploaded file
-			void *user_data,       //pointer of data return from callback
-			char *error			   //error
-			)		
-		)
-{
-	create_directories(token, path, tablename);
+	if (error){
+		char from_path[BUFSIZ];
+		sprintf(from_path, "app:/data/%s/%s", u->tablename, u->uuid);
+		
+		char to_path[BUFSIZ];
+		sprintf(to_path, "app:/deleted/%s/%s", u->tablename, u->uuid);
+		
+		if(d->callback)
+			d->callback(d->user_data, d->thread, STR("yd_upload: can't move %s to %s. Error: %s", from_path, to_path, error));
+		return 0;
+	}
 	
-	//create directory for identifier
-	char rowpath[BUFSIZ];
-	sprintf(rowpath, "app:/%s/%s/%s", path, tablename, identifier);
-	char *error = NULL;
-	c_yandex_disk_mkdir(token, rowpath, &error);
-	if (error) {
-		perror(error);
+	//remove from loacal updates table
+	char SQL[BUFSIZ];	
+	sprintf(SQL, "DELETE FROM kdata_updates WHERE uuid = '%s'", u->uuid);	
+	int err = sqlite_connect_execute(SQL, d->database_path);
+	if (err){
+		if (d->callback)
+			d->callback(d->user_data, d->thread, STR("yd_upload: %s. Error: %d", SQL, err));
+		return 0;
 	}	
 
-	//create directory for timestamp
-	sprintf(rowpath, "%s/%ld", rowpath, timestamp);
-	error = NULL;
-	c_yandex_disk_mkdir(token, rowpath, &error);
-	if (error) {
-		perror(error);
-	}	
+	//callback
+	if (d->callback)
+		d->callback(d->user_data, d->thread, STR("yd_upload: in cloud removed %s from %s", u->uuid, u->tablename));
 
-	//upload data for key
-	struct upload_value_for_key_t * t = malloc(sizeof(struct upload_value_for_key_t));
-	if (t==NULL){
-		perror("upload_value_for_key_t malloc");
-		if (callback)
-			callback(0, user_data, "Can't allocate memory for upload_value_for_key_t");
-		return;
-	}
-	t->value = malloc(size);
-	if (t->value == NULL){
-		perror("value malloc");
-		if (callback)
-			callback(0, user_data, "Can't allocate memory for value");
-		return;		
-	}
-	memcpy(t->value, value, size);
-	t->user_data = user_data;
-	t->callback = callback;
-
-	char keypath[BUFSIZ];
-	sprintf(keypath, "%s/%s", rowpath, key);
-	c_yandex_disk_upload_data(
-			token, 
-			value, 
-			size, 
-			keypath, 
-			true,
-			false,
-			t, 
-			upload_value_for_key_callback, 
-			NULL, 
-			NULL
-			);
+	return 0;
 }
 
+int yd_upload_data_callback(size_t size, void *user_data, char *error){
+	struct yd_upload_s *s = user_data;
+	struct yd_data_t *d = s->d; 
+	struct update_s * u = s->u;	
+	
+	if (error){
+		if (d->callback)
+			d->callback(d->user_data, d->thread, STR("yd_upload: yd_upload_data_callback error: %s", error));		
+		free(u);
+		free(s);
+		return 0;
+	}
+	
+	if (d->callback)
+		d->callback(d->user_data, d->thread, STR("yd_upload: uploaded size: %ld, table: %s, uuid: %s, timestamp: %ld, key: %s", size, u->tablename, u->uuid, u->timestamp, s->key));		
 
-struct sqlite2yandexdisk_upload_d{
-	int (*callback)(size_t size, void *user_data, char *error);			
-	void *user_data;
-	const char * token;
-	const char * path;
-	const char * database;
-	const char * tablename;
-	const char * uuid;		
-	time_t timestamp;
-};
+	//free
+	free(u);
+	free(s);
 
-int sqlite2yandexdisk_upload_callback(void *data, int argc, char **argv, char **titles) {
-	struct sqlite2yandexdisk_upload_d *d = data;
+	return 0;
+}
+
+int yd_upload_callback(void *user_data, int argc, char **argv, char **titles){ 
+	struct yd_upload_s *s = user_data;
+	struct yd_data_t *d = s->d; 
+	struct update_s * u = s->u;	
 
 	int i;
-	for (i = 0; i < argc; ++i) {
-		if (argv[i]){
-			if (strcmp("uuid", argv[i])){ //don't use uuid column
-				printf("sqlite2yandexdisk_upload: upload data for value: %s\n", titles[i]);
-				upload_value_for_key(
-					d->token,
-					d->path,
-					d->tablename,
-					d->uuid,
-					d->timestamp,
-					argv[i],
-					strlen(argv[i]) + 1, //save zero in the end of string
-					titles[i],
-					d->user_data,
-					d->callback
-				);
-			}
+	for (int i = 0; i < argc; i++) {
+		if (argv[i] && titles[i]){
+			//allocate args to upload data in thread
+			struct update_s * _u = NEW(struct update_s);
+			strcpy(_u->uuid, u->uuid);	
+			strcpy(_u->tablename, u->tablename);	
+			_u->timestamp = u->timestamp;
+			_u->deleted = u->deleted;
+			_u->localchange = u->localchange;			
+
+			struct yd_upload_s *_s = NEW(struct yd_upload_s);
+			_s->u = _u; _s->d = d;
+			strncpy(_s->key, titles[i], 127); _s->key[127] = 0; 
+
+			//upload in thread and run callback
+			char path[BUFSIZ];
+			sprintf(path, "app:/data/%s/%s/%ld", u->tablename, u->uuid, u->timestamp);
+			
+			int err = c_yandex_disk_upload_data(
+					d->token, 
+					argv[i], 
+					strlen(argv[i]) + 1, 
+					path, 
+					true, 
+					true, 
+					&_s, 
+					yd_upload_data_callback, 
+					NULL, 
+					NULL
+					);
+
+			if (err){
+				if (d->callback)
+					d->callback(d->user_data, d->thread, STR("yd_upload: c_yandex_disk_upload_data error: %d", err));
+				return 1; //stop execution of sqlite_connect_execute_function
+			}			
 		}
 	}
-	
 
 	return 0;
 }
 
-void
-sqlite2yandexdisk_upload(
-		const char * token,
-		const char * path,
-		const char * database,
-		const char * tablename,
-		const char * uuid,		
-		time_t timestamp,		   //last change of local data
-		void *user_data,		   //pointer of data return from callback
-		int (*callback)(		   //callback function when upload finished 
-			size_t size,           //size of uploaded file
-			void *user_data,       //pointer of data return from callback
-			char *error			   //error
-			)		
+void yd_upload(
+		struct yd_data_t *d, 
+		struct update_s * u
 		)
 {
-	//get data from table and upload data 
-	struct sqlite2yandexdisk_upload_d d = {
-		.token = token,
-		.path = path,
-		.database = database,
-		.tablename = tablename,
-		.uuid = uuid,
-		.timestamp = timestamp,
-		.user_data = user_data,
-		.callback = callback
-	};	
+	struct yd_upload_s s = {.d=d, u=u};
+	int err = 0;
+	if (u->deleted){
+		//delete from cloud data
+		char from_path[BUFSIZ];
+		sprintf(from_path, "app:/data/%s/%s", u->tablename, u->uuid);
+		
+		char to_path[BUFSIZ];
+		sprintf(to_path, "app:/deleted/%s", u->tablename);
+		//create directories
+		create_directories(d->token, to_path);
+		sprintf(to_path, "%s/%s", to_path, u->uuid);
+		
+		err = c_yandex_disk_mv(
+				d->token, 
+				from_path, 
+				to_path, 
+				true, 
+				&s, 
+				yd_upload_delete_callback
+				);
+		if (err){
+			if (d->callback)
+				d->callback(d->user_data, d->thread, STR("yd_upload: c_yandex_disk_mv error: %d", err));
+			return;
+		}		
+	
+	} else {
+		//create path
+		char path[BUFSIZ];
+		sprintf(path, "app:/data/%s/%s/%ld", u->tablename, u->uuid, u->timestamp);
+		create_directories(d->token, path);
+		
+		//upload to cloud data
+		char SQL[BUFSIZ];
+		sprintf(SQL, "SELECT * FROM %s WHERE uuid = '%s'", u->tablename, u->uuid);
+		err = sqlite_connect_execute_function(SQL, d->database_path, &s, yd_upload_callback);
+		if (err){
+			if (d->callback)
+				d->callback(d->user_data, d->thread, STR("yd_upload: %s. Error: %d", SQL, err));
+			return;
+		}				
 
-	char SQL[BUFSIZ];
-	sprintf(SQL, "SELECT * FROM %s WHERE uuid ='%s'", tablename, uuid);
-	sqlite_connect_execute_function(SQL, database, &d, sqlite2yandexdisk_upload_callback);
+		//remove data from update table
+		sprintf(SQL, "DELETE FROM kdata_updates WHERE uuid = '%s'", u->uuid);
+		err = sqlite_connect_execute(SQL, d->database_path);
+		if (err){
+			if (d->callback)
+				d->callback(d->user_data, d->thread, STR("yd_upload: %s. Error: %d", SQL, err));
+			return;
+		}				
+
+		//callback
+		if (d->callback)
+			d->callback(d->user_data, d->thread, STR("yd_upload: uploaded data for: %s in: %s", u->uuid, u->tablename));		
+	}
+
 }
