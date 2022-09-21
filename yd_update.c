@@ -254,7 +254,7 @@ void yd_update(struct yd_data_t *d)
 	for (int i = 0; i < 2; i++) {
 		char *path = paths[i];
 		kdata_s * s = d->structure;	
-		while (s) {
+		while (s->next) {
 			kdata_table table = s->table;
 			//get path
 			char datapath[BUFSIZ];
