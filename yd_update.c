@@ -1,5 +1,4 @@
-/**
- * File              : yd_update.c
+update * File              : yd_update.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 20.09.2022
  * Last Modified Date: 21.09.2022
@@ -263,10 +262,10 @@ void yd_update(struct yd_data_t *d)
 			//get list of uuids in cloud
 			list_t * uuids_in_cloud = list_new();	
 			struct list_callback_s cs = {.d = d, .l = &uuids_in_cloud};
-			err = c_yandex_disk_ls(d->token, path, &cs, uuids_in_cloud_callback);
+			err = c_yandex_disk_ls(d->token, datapath, &cs, uuids_in_cloud_callback);
 			if (err){
 				if (d->callback)
-				   d->callback(d->user_data, d->thread, STR("yd_update: c_yandex_disk_ls %s. Error: %d", path, err));	
+				   d->callback(d->user_data, d->thread, STR("yd_update: c_yandex_disk_ls %s. Error: %d", datapath, err));	
 			}
 			
 			//compare
