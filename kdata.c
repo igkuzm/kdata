@@ -2,7 +2,7 @@
  * File              : kdata.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 20.09.2022
- * Last Modified Date: 20.09.2022
+ * Last Modified Date: 21.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 #include "kdata.h"
@@ -12,7 +12,6 @@
 #include <string.h>
 #include <stdarg.h>
 
-#include "yd.h"
 #include "SQLiteConnect/SQLiteConnect.h"
 #include "cYandexDisk/uuid4/uuid4.h"
 #include "base64.h"
