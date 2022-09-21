@@ -27,8 +27,9 @@ add_subdirectory(${KDATA_SOURCE_DIR}/SQLiteConnect)
 add_library(${TARGET} STATIC
 	kdata.c
 	yd_daemon.c
-	yd_update_from_cloud.c
+	yd_download.c
 	yd_upload.c
+	yd_update.c
 )
 target_link_libraries(${TARGET} cYandexDisk SQLiteConnect)
 
