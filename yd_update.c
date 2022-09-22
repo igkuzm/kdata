@@ -301,6 +301,9 @@ void yd_update(struct yd_data_t *d)
 			struct update_s *update = item;			
 
 			//upload data
+			if (d->callback)
+				d->callback(d->user_data, d->thread, STR("yd_update: try to upload: %s, uuid: %s, timestamp: %ld, deleted: %s", 
+							update->tablename, update->uuid, update->timestamp, update->deleted?"true":"false"));
 			yd_upload(d, update);
 		}
 	}
@@ -311,6 +314,8 @@ void yd_update(struct yd_data_t *d)
 			struct update_s *update = list_to_download->data;			
 			
 			//download data
+			d->callback(d->user_data, d->thread, STR("yd_update: try to download: %s, uuid: %s, timestamp: %ld, deleted: %s", 
+						update->tablename, update->uuid, update->timestamp, update->deleted?"true":"false"));
 			yd_download(d, update);
 
 			//free args and iterate
