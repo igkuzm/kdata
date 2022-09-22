@@ -1,7 +1,7 @@
 /* File              : yd_update.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 20.09.2022
- * Last Modified Date: 21.09.2022
+ * Last Modified Date: 22.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -102,9 +102,12 @@ int uuids_in_cloud_callback(c_yd_file_t *file, void * user_data, char * error){
 }
 
 int updates_in_database_callback(void *user_data, int argc, char **argv, char **titles){
-	struct update_s *s = NEW(struct update_s);
+	struct list_callback_s *s = user_data;
+	list_t ** l = s->l;
+	struct yd_data_t *d = s->d;
+	
+	struct update_s *u = NEW(struct update_s);
 	if (s){
-		list_t ** l = user_data;
 		int i;
 		for (int i = 0; i < argc; i++) {
 			char *value = argv[i];
@@ -112,18 +115,21 @@ int updates_in_database_callback(void *user_data, int argc, char **argv, char **
 				value ="";
 			switch (i) {
 				case 0:
-				   strncpy(s->uuid, value, 36); s->uuid[36] = 0; break;
+				   strncpy(u->uuid, value, 36); u->uuid[36] = 0; break;
 				case 1:
-				   strncpy(s->tablename, value, 127); s->tablename[127] = 0; break;
+				   strncpy(u->tablename, value, 127); u->tablename[127] = 0; break;
 				case 2:
-				   s->timestamp = atol(value); break;
+				   u->timestamp = atol(value); break;
 				case 3:
-				   s->localchange = atoi(value); break;
+				   u->localchange = atoi(value); break;
 				case 4:
-				   s->deleted = atoi(value); break;
+				   u->deleted = atoi(value); break;
 			}
 		}
 		list_add(l, s);
+		
+		if (d->callback)
+			d->callback(d->user_data, d->thread, STR("Check update for: %s, uuid: %s, timestamp: %ld, deleted: %s", u->tablename, u->uuid, u->timestamp, u->deleted?"true":"false"));
 	}
 
 	return 0;
@@ -231,8 +237,9 @@ void yd_update(struct yd_data_t *d)
 
 	//get list of updates in database
 	list_t * updates_in_database = list_new();	
+	struct list_callback_s cs = {.d = d, .l = &updates_in_database};
 	char SQL[] = "SELECT * FROM kdata_updates";
-	err = sqlite_connect_execute_function(SQL, d->database_path, &updates_in_database, updates_in_database_callback);
+	err = sqlite_connect_execute_function(SQL, d->database_path, &cs, updates_in_database_callback);
 	if (err){
 		if (d->callback)
 		   d->callback(d->user_data, d->thread, STR("yd_update: can't SELECT * FROM kdata_updates. Error: %d", err));	
