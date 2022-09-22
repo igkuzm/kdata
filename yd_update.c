@@ -126,7 +126,7 @@ int updates_in_database_callback(void *user_data, int argc, char **argv, char **
 				   u->deleted = atoi(value); break;
 			}
 		}
-		list_add(l, s);
+		list_add(l, u);
 		
 		if (d->callback)
 			d->callback(d->user_data, d->thread, STR("Check update for: %s, uuid: %s, timestamp: %ld, deleted: %s", u->tablename, u->uuid, u->timestamp, u->deleted?"true":"false"));
