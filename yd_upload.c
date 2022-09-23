@@ -39,7 +39,6 @@ create_directories(
 		if (error) {
 			if(d->callback)
 				d->callback(d->user_data, d->thread, STR("yd_upload: can't create directory %s: %s", _path, error));
-			return -1;
 		}
 		p = strtok(NULL, "/");
 		sprintf(_path, "%s/%s", _path, p);
@@ -195,7 +194,6 @@ void yd_upload(
 		if (create_directories(d, to_path)){
 			if (d->callback)
 				d->callback(d->user_data, d->thread, STR("yd_upload: can't create directories for path: %s", to_path));
-			return;
 		};
 		sprintf(to_path, "%s/%s", to_path, u->uuid);
 		
@@ -220,7 +218,6 @@ void yd_upload(
 		if (create_directories(d, path)){
 			if (d->callback)
 				d->callback(d->user_data, d->thread, STR("yd_upload: can't create directories for path: %s", path));
-			return;
 		};
 		
 		//upload to cloud data
