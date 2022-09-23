@@ -185,7 +185,7 @@ void yd_upload(
 		char to_path[BUFSIZ];
 		sprintf(to_path, "app:/deleted/%s", u->tablename);
 		//create directories
-		create_directories(d->token, to_path);
+		create_directories(d, to_path);
 		sprintf(to_path, "%s/%s", to_path, u->uuid);
 		
 		err = c_yandex_disk_mv(
@@ -206,7 +206,7 @@ void yd_upload(
 		//create path
 		char path[BUFSIZ];
 		sprintf(path, "app:/data/%s/%s/%ld", u->tablename, u->uuid, u->timestamp);
-		create_directories(d->token, path);
+		create_directories(d, path);
 		
 		//upload to cloud data
 		char SQL[BUFSIZ];
