@@ -177,7 +177,7 @@ yd_update_list_compare(
 		struct list_callback_s cs = {.d = d, .l = &timestamps};
 		char datapath[BUFSIZ];
 		sprintf(datapath, "app:/%s/%s/%s", path, tablename, uuid);
-		int err = c_yandex_disk_ls(d->token, path, &cs, timestamps_callback);
+		int err = c_yandex_disk_ls(d->token, datapath, &cs, timestamps_callback);
 		if (err){
 			if (d->callback)
 				d->callback(d->user_data, d->thread, STR("yd_update: yd_update_list_compare %s. Error: %d", datapath, err));	
