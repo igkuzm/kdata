@@ -18,26 +18,30 @@
 
 int
 create_directories(
-		const char * token,
+		struct yd_data_t *d, 
 		const char * path
 		)
 {
+	if(d->callback)
+		d->callback(d->user_data, d->thread, STR("yd_upload: create directories for path: %s", path));
+	
 	//buffer for path
 	char buf[BUFSIZ];
 	strncpy(buf, path, BUFSIZ - 1); buf[BUFSIZ - 1] = '\0';
 	//make directory for path - strtok to use path components
 	char _path[BUFSIZ];
 	char *p = strtok(buf, "/");
+	sprintf(_path, "%s", p);
 	while (p) {
 		char *error = NULL;
-		sprintf(_path, "%s/%s", _path, p);
-		printf("make directories for path: %s\n", _path);
 		if (strcmp("app:", _path)) //don't create 'app:' path
-			c_yandex_disk_mkdir(token, _path, &error);
+			c_yandex_disk_mkdir(d->token, _path, &error);
 		if (error) {
-			perror(error);
+			if(d->callback)
+				d->callback(d->user_data, d->thread, STR("yd_upload: can't create directory %s: %s", _path, error));
 		}
 		p = strtok(NULL, "/");
+		sprintf(_path, "%s/%s", _path, p);
 	}
 	
 	return 0;
