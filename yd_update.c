@@ -57,21 +57,6 @@ void list_remove(struct list_t *list, struct list_t * node){
 	}
 }
 
-void list_free(struct list_t *list){
-	while(list->next){
-		free(list->data);
-		list_t *ptr = list;
-		list = list->next;
-		free(ptr);
-	}
-	free(list);
-}
-
-#define list_for_each(list, item) \
-	struct list_t * ___ptr = list; \
-	void* item; \
-	for (item = ___ptr->data; ___ptr->next; ___ptr=___ptr->next, item = ___ptr->data)
-
 /*
  * Implimation
  */
@@ -169,8 +154,9 @@ yd_update_list_compare(
 		)
 {
 	//for each uuid in cloud
-	list_for_each(uuids_in_cloud, item){
-		char *uuid = item;
+	list_t *uuids = uuids_in_cloud; 
+	while(uuids->next){
+		char *uuid = uuids->data;
 		bool new_to_download = true; //by default is new to download
 		//get timestamps
 		list_t * timestamps = list_new();	
@@ -187,6 +173,8 @@ yd_update_list_compare(
 		time_t max = 0;
 		while (timestamps->next) {
 			time_t *timestamp = timestamps->data;
+			if (d->callback)
+				d->callback(d->user_data, d->thread, STR("yd_update: check timestamp %ld for %s", *timestamp, uuid));	
 			if (*timestamp > max)
 				max = *timestamp;
 			//iterate and free timestamp
@@ -233,6 +221,12 @@ yd_update_list_compare(
 			strcpy(update->uuid, uuid);
 			list_add(list_to_download, update);
 		}	
+
+		//iterate uuids and free data
+		list_t * uuids_ptr = uuids;
+		uuids = uuids->next;
+		free(uuid);
+		free(uuids_ptr);
 	}
 }
 
@@ -251,11 +245,13 @@ void yd_update(struct yd_data_t *d)
 		return;
 	}
 
-	//list to upload
-	struct list_t *list_to_upload = list_new();
-	list_for_each(updates_in_database, item){
-		list_add(&list_to_upload, item);		
-	}	
+	//allocate list to upload and fill with updates_in_database
+	list_t *list_to_upload = list_new();
+	list_t *ptr = updates_in_database;
+	while (ptr->next){
+		list_add(&list_to_upload, ptr->data);		
+		ptr = ptr->next;
+	}
 
 	//list to download
 	struct list_t *list_to_download = list_new();
@@ -292,9 +288,6 @@ void yd_update(struct yd_data_t *d)
 					i
 					);
 
-			//free uuids_in_cloud
-			list_free(uuids_in_cloud);
-			
 			//itarate structure
 			s=s->next;
 		}
@@ -302,15 +295,20 @@ void yd_update(struct yd_data_t *d)
 
 	//upload data
 	{
-		list_for_each(list_to_upload, item){ //no need to free list (pointers to updates_in_database)
-			struct update_s *update = item;			
+		while(list_to_upload->next){ //no need to free list nodes (pointers to updates_in_database)
+			struct update_s *update = list_to_upload->data;			
 
 			//upload data
 			if (d->callback)
 				d->callback(d->user_data, d->thread, STR("yd_update: try to upload: %s, uuid: %s, timestamp: %ld, deleted: %s", 
 							update->tablename, update->uuid, update->timestamp, update->deleted?"true":"false"));
 			yd_upload(d, update);
+
+			//iterate
+			list_to_upload = list_to_upload->next;
 		}
+		//free list_to_upload
+		free(list_to_upload);
 	}
 
 	//download data
@@ -333,5 +331,11 @@ void yd_update(struct yd_data_t *d)
 	}
 
 	//free memory
-	list_free(updates_in_database);
+	while(updates_in_database->next){
+		list_t *ptr = updates_in_database;
+		updates_in_database = updates_in_database->next;
+		free(ptr->data);	
+		free(ptr);	
+	}
+	free(updates_in_database);
 }
