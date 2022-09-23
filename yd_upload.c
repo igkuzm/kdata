@@ -36,10 +36,6 @@ create_directories(
 		char *error = NULL;
 		if (strcmp("app:", _path)) //don't create 'app:' path
 			c_yandex_disk_mkdir(d->token, _path, &error);
-		//if (error) {
-			//if(d->callback)
-				//d->callback(d->user_data, d->thread, STR("yd_upload: can't create directory %s: %s", _path, error));
-		//}
 		p = strtok(NULL, "/");
 		sprintf(_path, "%s/%s", _path, p);
 	}
