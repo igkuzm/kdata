@@ -118,12 +118,9 @@ int yd_upload_callback(void *user_data, int argc, char **argv, char **titles){
 
 	int i;
 	for (int i = 0; i < argc; i++) {
-		if (argv[i] && titles[i]){
+		if (argv[i] && titles[i] && strcmp("uuid", titles[i])){ //dont save uuid
 			if (d->callback)
-				d->callback(d->user_data, d->thread, STR("yd_upload: try to upload: %s", titles[i]));
-
-			char title[128];
-			strncpy(title, titles[i], 127); title[127]=0;
+				d->callback(d->user_data, d->thread, STR("yd_upload: try to upload: %s for %s in %s", titles[i], u->uuid, u->tablename));
 
 			//allocate args to upload data in thread
 			struct update_s * _u = NEW(struct update_s);
