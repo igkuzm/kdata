@@ -183,21 +183,32 @@ yd_update_list_compare(
 			timestamps = timestamps->next;
 			free(timestamps_ptr);
 		}
+		if (d->callback)
+			d->callback(d->user_data, d->thread, STR("yd_update: max timestamp %ld for %s", max, uuid));	
 		//for each in updates
 		list_t * u = updates_in_database;
 		while (u->next){
 			struct update_s *update = u->data; 
 			//if uuid matches	
-			if (!strcmp(uuid, update->uuid)){
+			if (strcmp(uuid, update->uuid) == 0){ //if uuid matches
 				new_to_download = false; //it's not new
 				//compare timestamps
+				if (d->callback)
+					d->callback(d->user_data, d->thread, STR("yd_update: compare timestamps %ld and %ld for %s", max, update->timestamp, uuid));	
 				if ((update->timestamp > max)){
 					//keep in list_to_upload
+					if (d->callback)
+						d->callback(d->user_data, d->thread, STR("yd_update: need to upload timestamps %ld for %s", update->timestamp, uuid));	
 				} else {
 					//remove from upload list
 					list_remove(*list_to_upload, u);
+					if (d->callback)
+						d->callback(d->user_data, d->thread, STR("yd_update: don't need to update timestamp %ld for %s", update->timestamp, uuid));	
 				} 
 				if (update->timestamp < max){
+					if (d->callback)
+						d->callback(d->user_data, d->thread, STR("yd_update: don't need to download timestamp %ld for %s", max, uuid));	
+
 					struct update_s *update = NEW(struct update_s);
 					update->timestamp = max;
 					update->localchange = false;

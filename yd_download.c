@@ -2,7 +2,7 @@
  * File              : yd_download.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 29.07.2022
- * Last Modified Date: 21.09.2022
+ * Last Modified Date: 23.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -161,7 +161,7 @@ void yd_download(
 				"INSERT INTO kdata_updates (uuid) "
 				"SELECT '%s' "
 				"WHERE NOT EXISTS (SELECT 1 FROM kdata_updates WHERE uuid = '%s'); "
-				"UPDATE kdata_updates SET table = '%s', deleted = 0, localchange = 0, timestamp = %ld WHERE uuid = '%s'"
+				"UPDATE kdata_updates SET tablename = '%s', deleted = 0, localchange = 0, timestamp = %ld WHERE uuid = '%s'"
 				,
 				u->uuid,
 				u->uuid,
