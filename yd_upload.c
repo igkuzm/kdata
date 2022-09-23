@@ -2,7 +2,7 @@
  * File              : yd_upload.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 03.05.2022
- * Last Modified Date: 21.09.2022
+ * Last Modified Date: 23.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -47,6 +47,7 @@ struct yd_upload_s {
 	struct yd_data_t *d; 
 	struct update_s * u;
 	char key[128];
+	void *value;
 };
 
 int yd_upload_delete_callback(void *user_data, char *error){
@@ -91,15 +92,15 @@ int yd_upload_data_callback(size_t size, void *user_data, char *error){
 	if (error){
 		if (d->callback)
 			d->callback(d->user_data, d->thread, STR("yd_upload: yd_upload_data_callback error: %s", error));		
-		free(u);
-		free(s);
-		return 0;
+		goto FREE;
 	}
 	
 	if (d->callback)
 		d->callback(d->user_data, d->thread, STR("yd_upload: uploaded size: %ld, table: %s, uuid: %s, timestamp: %ld, key: %s", size, u->tablename, u->uuid, u->timestamp, s->key));		
 
 	//free
+	FREE:
+	free(s->value);
 	free(u);
 	free(s);
 
@@ -126,14 +127,25 @@ int yd_upload_callback(void *user_data, int argc, char **argv, char **titles){
 			_s->u = _u; _s->d = d;
 			strncpy(_s->key, titles[i], 127); _s->key[127] = 0; 
 
+			//allocate and copy data
+			size_t len = strlen(argv[i]) + 1; //add +1 for \0 at the end of the string
+			void * value = malloc(len);
+			if (!value){
+				if (d->callback)
+					d->callback(d->user_data, d->thread, STR("yd_upload: value memory allocate error"));
+				return 0;
+			}
+			memcpy(value, argv[i], len);
+			_s->value = value; //save pointer as arg - to free value in callback
+
 			//upload in thread and run callback
 			char path[BUFSIZ];
 			sprintf(path, "app:/data/%s/%s/%ld", u->tablename, u->uuid, u->timestamp);
 			
 			int err = c_yandex_disk_upload_data(
 					d->token, 
-					argv[i], 
-					strlen(argv[i]) + 1, 
+					value, 
+					len, 
 					path, 
 					true, 
 					true, 
