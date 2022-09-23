@@ -39,6 +39,7 @@ create_directories(
 		if (error) {
 			if(d->callback)
 				d->callback(d->user_data, d->thread, STR("yd_upload: can't create directory %s: %s", _path, error));
+			return -1;
 		}
 		p = strtok(NULL, "/");
 		sprintf(_path, "%s/%s", _path, p);
@@ -119,6 +120,9 @@ int yd_upload_callback(void *user_data, int argc, char **argv, char **titles){
 	int i;
 	for (int i = 0; i < argc; i++) {
 		if (argv[i] && titles[i]){
+			if (d->callback)
+				d->callback(d->user_data, d->thread, STR("yd_upload: try to upload: %s", titles[i]));
+
 			//allocate args to upload data in thread
 			struct update_s * _u = NEW(struct update_s);
 			strcpy(_u->uuid, u->uuid);	
@@ -144,7 +148,7 @@ int yd_upload_callback(void *user_data, int argc, char **argv, char **titles){
 
 			//upload in thread and run callback
 			char path[BUFSIZ];
-			sprintf(path, "app:/data/%s/%s/%ld", u->tablename, u->uuid, u->timestamp);
+			sprintf(path, "app:/data/%s/%s/%ld/%s", u->tablename, u->uuid, u->timestamp, titles[i]);
 			
 			int err = c_yandex_disk_upload_data(
 					d->token, 
@@ -185,7 +189,11 @@ void yd_upload(
 		char to_path[BUFSIZ];
 		sprintf(to_path, "app:/deleted/%s", u->tablename);
 		//create directories
-		create_directories(d, to_path);
+		if (create_directories(d, to_path)){
+			if (d->callback)
+				d->callback(d->user_data, d->thread, STR("yd_upload: can't create directories for path: %s", to_path));
+			return;
+		};
 		sprintf(to_path, "%s/%s", to_path, u->uuid);
 		
 		err = c_yandex_disk_mv(
@@ -206,7 +214,11 @@ void yd_upload(
 		//create path
 		char path[BUFSIZ];
 		sprintf(path, "app:/data/%s/%s/%ld", u->tablename, u->uuid, u->timestamp);
-		create_directories(d, path);
+		if (create_directories(d, path)){
+			if (d->callback)
+				d->callback(d->user_data, d->thread, STR("yd_upload: can't create directories for path: %s", path));
+			return;
+		};
 		
 		//upload to cloud data
 		char SQL[BUFSIZ];
