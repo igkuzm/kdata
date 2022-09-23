@@ -227,7 +227,7 @@ yd_update_list_compare(
 			u = u->next;
 		}
 		//if is new to download
-		if (new_to_download){
+		if (new_to_download && max > 0){
 			struct update_s *update = NEW(struct update_s);
 			update->timestamp = max;
 			update->localchange = false;
