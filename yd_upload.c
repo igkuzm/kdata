@@ -123,6 +123,9 @@ int yd_upload_callback(void *user_data, int argc, char **argv, char **titles){
 			if (d->callback)
 				d->callback(d->user_data, d->thread, STR("yd_upload: try to upload: %s", titles[i]));
 
+			char title[128];
+			strncpy(title, titles[i], 127); title[127]=0;
+
 			//allocate args to upload data in thread
 			struct update_s * _u = NEW(struct update_s);
 			strcpy(_u->uuid, u->uuid);	
@@ -148,7 +151,7 @@ int yd_upload_callback(void *user_data, int argc, char **argv, char **titles){
 
 			//upload in thread and run callback
 			char path[BUFSIZ];
-			sprintf(path, "app:/data/%s/%s/%ld/%s", u->tablename, u->uuid, u->timestamp, titles[i]);
+			sprintf(path, "app:/data/%s/%s/%ld/%s", u->tablename, u->uuid, u->timestamp, _s->key);
 			
 			int err = c_yandex_disk_upload_data(
 					d->token, 
