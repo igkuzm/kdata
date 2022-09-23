@@ -207,7 +207,7 @@ yd_update_list_compare(
 					//keep in list_to_upload
 				} else {
 					//remove from upload list
-					list_remove(*list_to_upload, item);
+					list_remove(*list_to_upload, u);
 				} 
 				if (update->timestamp < max){
 					struct update_s *update = NEW(struct update_s);
