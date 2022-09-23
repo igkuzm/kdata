@@ -1,7 +1,7 @@
 /* File              : yd_update.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 20.09.2022
- * Last Modified Date: 22.09.2022
+ * Last Modified Date: 23.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
