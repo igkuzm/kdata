@@ -46,15 +46,23 @@ void list_add(struct list_t **list, void *data){
 	}
 }
 
-void list_remove(struct list_t *list, struct list_t * node){
-	while (list) {
-		struct list_t *next = list->next;
-		if (next == node){
-			list->next = next->next;
+void list_remove(struct list_t **list, void * data){
+	list_t *ptr = *list;
+	list_t *new = list_new();
+	while (ptr->next) {
+		if (ptr->data != data){
+			list_add(&new, ptr->data);
 		}
 		//iterate
-		list = list->next;
+		ptr = ptr->next;
+
+		//free list
+		list_t *node_to_free = *list;
+		*list = list[0]->next;
+		free(node_to_free); node_to_free = NULL;
 	}
+	free(*list);
+	*list = new;
 }
 
 /*
@@ -173,18 +181,14 @@ yd_update_list_compare(
 		time_t max = 0;
 		while (timestamps->next) {
 			time_t *timestamp = timestamps->data;
-			if (d->callback)
-				d->callback(d->user_data, d->thread, STR("yd_update: check timestamp %ld for %s", *timestamp, uuid));	
 			if (*timestamp > max)
 				max = *timestamp;
 			//iterate and free timestamp
-			free(timestamp);
+			free(timestamp); timestamp = NULL;
 			list_t * timestamps_ptr = timestamps;
 			timestamps = timestamps->next;
-			free(timestamps_ptr);
+			free(timestamps_ptr); timestamps_ptr = NULL;
 		}
-		if (d->callback)
-			d->callback(d->user_data, d->thread, STR("yd_update: max timestamp %ld for %s", max, uuid));	
 		//for each in updates
 		list_t * u = updates_in_database;
 		while (u->next){
@@ -194,20 +198,20 @@ yd_update_list_compare(
 				new_to_download = false; //it's not new
 				//compare timestamps
 				if (d->callback)
-					d->callback(d->user_data, d->thread, STR("yd_update: compare timestamps %ld and %ld for %s", max, update->timestamp, uuid));	
+					d->callback(d->user_data, d->thread, STR("yd_update: compare timestamps %ld(cloud) and %ld(local) for %s", max, update->timestamp, uuid));	
 				if ((update->timestamp > max)){
 					//keep in list_to_upload
 					if (d->callback)
-						d->callback(d->user_data, d->thread, STR("yd_update: need to upload timestamps %ld for %s", update->timestamp, uuid));	
+						d->callback(d->user_data, d->thread, STR("yd_update: need to upload timestamps %ld(local) for %s", update->timestamp, uuid));	
 				} else {
 					//remove from upload list
-					list_remove(*list_to_upload, u);
+					list_remove(list_to_upload, update);
 					if (d->callback)
-						d->callback(d->user_data, d->thread, STR("yd_update: don't need to update timestamp %ld for %s", update->timestamp, uuid));	
+						d->callback(d->user_data, d->thread, STR("yd_update: no need to upload - remove from upload list %s", uuid));	
 				} 
 				if (update->timestamp < max){
 					if (d->callback)
-						d->callback(d->user_data, d->thread, STR("yd_update: don't need to download timestamp %ld for %s", max, uuid));	
+						d->callback(d->user_data, d->thread, STR("yd_update: need to download timestamp %ld(cloud) for %s", max, uuid));	
 
 					struct update_s *update = NEW(struct update_s);
 					update->timestamp = max;
@@ -236,8 +240,8 @@ yd_update_list_compare(
 		//iterate uuids and free data
 		list_t * uuids_ptr = uuids;
 		uuids = uuids->next;
-		free(uuid);
-		free(uuids_ptr);
+		free(uuid); uuid = NULL;
+		free(uuids_ptr); uuids_ptr = NULL;
 	}
 }
 
@@ -319,7 +323,8 @@ void yd_update(struct yd_data_t *d)
 			list_to_upload = list_to_upload->next;
 		}
 		//free list_to_upload
-		free(list_to_upload);
+		if(list_to_upload)
+			free(list_to_upload);
 	}
 
 	//download data
@@ -333,20 +338,22 @@ void yd_update(struct yd_data_t *d)
 			yd_download(d, update);
 
 			//free args and iterate
-			free(update);
+			free(update); update = NULL;
 			list_t *ptr = list_to_download;
 			list_to_download = list_to_download->next;
-			free(ptr);			
+			free(ptr); ptr = NULL;		
 		}
-		free(list_to_download);
+		if (list_to_download)
+			free(list_to_download);
 	}
 
 	//free memory
 	while(updates_in_database->next){
 		list_t *ptr = updates_in_database;
 		updates_in_database = updates_in_database->next;
-		free(ptr->data);	
-		free(ptr);	
+		free(ptr->data); ptr->data = NULL;	
+		free(ptr); ptr = NULL;	
 	}
-	free(updates_in_database);
+	if(updates_in_database)
+		free(updates_in_database);
 }
