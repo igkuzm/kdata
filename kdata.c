@@ -2,7 +2,7 @@
  * File              : kdata.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 20.09.2022
- * Last Modified Date: 21.09.2022
+ * Last Modified Date: 27.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 #include "kdata.h"
@@ -174,6 +174,7 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 	
 	//create table for each in strucuture
 	kdata_s * ptr = s;
+	ptr->table = s->table;
 	while (ptr) {
 		kdata_table t = ptr->table;
 		if (t.columns_count > 0){
@@ -183,6 +184,7 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 		
 			int i;
 			for (i = 0; i < t.columns_count; i++) {
+                if (t.columns){
 				kdata_column c = t.columns[i];
 
 				if (strcmp("uuid", c.key)) { //check if key is not 'uuid'
@@ -198,6 +200,7 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 					sprintf(str, "%s %s, ", c.key, type);
 					strcat(SQL, str);
 				}
+                }
 			}
 
 			//add uuid key to table

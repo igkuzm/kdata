@@ -2,7 +2,7 @@
  * File              : yd_upload.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 03.05.2022
- * Last Modified Date: 23.09.2022
+ * Last Modified Date: 27.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -152,7 +152,7 @@ int yd_upload_callback(void *user_data, int argc, char **argv, char **titles){
 					path, 
 					true, 
 					true, 
-					&_s, 
+					_s, 
 					yd_upload_data_callback, 
 					NULL, 
 					NULL
