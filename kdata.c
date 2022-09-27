@@ -16,6 +16,8 @@
 #include "cYandexDisk/uuid4/uuid4.h"
 #include "base64.h"
 
+#define NEW(T) ({T * ___ptr = malloc(sizeof(T)); ___ptr;})
+
 
 const char * kdata_parse_kerr(kerr err){
 	switch (err) {
@@ -35,7 +37,7 @@ const char * kdata_parse_kerr(kerr err){
 }
 
 kdata_table * kdata_table_new(){
-	kdata_table * t = malloc(sizeof(kdata_table));
+	kdata_table * t = NEW(kdata_table);
 	return t;	
 }
 
@@ -45,7 +47,7 @@ void kdata_table_init(kdata_table * t, const char * tablename, ...){
 	t->tablename[sizeof(t->tablename) - 1] = 0;
 
 	//allocate columns array
-	t->columns = malloc(sizeof(kdata_column));
+	t->columns = NEW(kdata_column);
 	if (!t->columns)
 		return;
 	
@@ -104,7 +106,7 @@ void kdata_d_init(kdata_d * value){
 
 kdata_s * kdata_structure_init(){
 	//allocate
-	kdata_s * s = malloc(sizeof(kdata_s));
+	kdata_s * s = NEW(kdata_s);
 	if (!s) 
 		return NULL;
 	s->next = NULL;
@@ -119,7 +121,7 @@ kerr kdata_structure_add(
 	if (!s) //ckeck if strucuture null
 		return KERR_NULLSTRUCTURE;
 
-	if (!strcmp(t->tablename, "kdata_updates")) //dont use name 'kdata_updates' for key
+	if (!strcmp(t->tablename, "kdata_updates")) //dont use name 'kdata_updates' as tablename
 		return KERR_DONTUSEKDATAUPDATES;
 
 	kdata_s * ptr = *s;
@@ -151,8 +153,17 @@ kerr kdata_structure_free(kdata_s * s){
 }
 
 
-kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char * token,
-		void * user_data, int (*daemon_callback)(void * user_data, pthread_t thread, char * msg)
+kerr kdata_init(
+		const char * filepath, 
+		kdata_s * s, 
+		DSERVICE service, 
+		const char * token,
+		void * user_data, 
+		int (*daemon_callback)(
+			void * user_data, 
+			pthread_t thread, 
+			char * msg
+			)
 		){
 	//ceate database
 	sqlite_connect_create_database(filepath);
@@ -174,7 +185,6 @@ kerr kdata_init(const char * filepath, kdata_s * s, DSERVICE service, const char
 	
 	//create table for each in strucuture
 	kdata_s * ptr = s;
-	ptr->table = s->table;
 	while (ptr) {
 		kdata_table t = ptr->table;
 		if (t.columns_count > 0){

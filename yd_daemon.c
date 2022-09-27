@@ -2,7 +2,7 @@
  * File              : yd_daemon.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 20.07.2022
- * Last Modified Date: 21.09.2022
+ * Last Modified Date: 27.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -27,7 +27,7 @@ yd_thread(void * data)
 
 	while (1) {
 		if (d->callback)
-			if (d->callback(d->user_data, d->thread, "kdata daemon: updating data..."))
+			if (d->callback(d->user_data, d->thread, "yd_daemon: updating data..."))
 				break;
 		yd_update(d);
 		sleep(SEC);
@@ -54,7 +54,7 @@ yd_daemon_init(
 	err = pthread_attr_init(&attr);
 	if (err) {
 		if (callback)
-			callback(user_data, 0, STR("kdata daemon: can't set thread attributes: %d", err));
+			callback(user_data, 0, STR("yd_daemon: can't set thread attributes: %d", err));
 		exit(err);
 	}	
 
@@ -71,7 +71,7 @@ yd_daemon_init(
 	err = pthread_create(&tid, &attr, yd_thread, d);
 	if (err) {
 		if (callback)
-			callback(user_data, 0, STR("kdata daemon: can't create thread: %d", err));
+			callback(user_data, 0, STR("yd_daemon: can't create thread: %d", err));
 		exit(err);
 	}
 }
