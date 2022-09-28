@@ -184,18 +184,17 @@ kerr kdata_init(
 		return KERR_SQLITE_EXECUTE;	
 	
 	//create table for each in strucuture
-	kdata_s ** ptr = &s;
-	while (ptr) {
-		kdata_table t = ptr[0]->table;
-		if (t.columns_count > 0){
+	kdata_s *ptr = s;
+	while (ptr->next) {
+		if (ptr->table.columns_count > 0){
 			char SQL[BUFSIZ] = "CREATE TABLE IF NOT EXISTS ";
-			strcat(SQL, t.tablename);
+			strcat(SQL, ptr->table.tablename);
 			strcat(SQL, " ( ");
 		
 			int i;
-			for (i = 0; i < t.columns_count; i++) {
-                if (t.columns){
-				kdata_column c = t.columns[i];
+			for (i = 0; i < ptr->table.columns_count; i++) {
+                if (ptr->table.columns){
+				kdata_column c = ptr->table.columns[i];
 
 				if (strcmp("uuid", c.key)) { //check if key is not 'uuid'
 					char * type;
@@ -222,7 +221,7 @@ kerr kdata_init(
 		}
 		
 		//iterate database structure
-		*ptr = ptr[0]->next;
+		ptr = ptr->next;
 	}
 
 	//start daemon
