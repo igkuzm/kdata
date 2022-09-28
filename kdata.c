@@ -2,7 +2,7 @@
  * File              : kdata.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 20.09.2022
- * Last Modified Date: 27.09.2022
+ * Last Modified Date: 28.09.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 #include "kdata.h"
@@ -184,9 +184,9 @@ kerr kdata_init(
 		return KERR_SQLITE_EXECUTE;	
 	
 	//create table for each in strucuture
-	kdata_s * ptr = s;
+	kdata_s ** ptr = &s;
 	while (ptr) {
-		kdata_table t = ptr->table;
+		kdata_table t = ptr[0]->table;
 		if (t.columns_count > 0){
 			char SQL[BUFSIZ] = "CREATE TABLE IF NOT EXISTS ";
 			strcat(SQL, t.tablename);
@@ -222,7 +222,7 @@ kerr kdata_init(
 		}
 		
 		//iterate database structure
-		ptr = ptr->next;
+		*ptr = ptr[0]->next;
 	}
 
 	//start daemon
